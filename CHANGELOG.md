@@ -1,5 +1,14 @@
 # Changelog
 
+## v3.3.0
+
+### Novidades
+- O módulo passa a se chamar **Navegador de Mundos (Em testes)**, com aviso no README: ainda não está completo e pode ter erros.
+- Novos gatilhos de porta: **ao destrancar**, **ao tentar abrir trancada** (quando um jogador clica numa porta trancada) e **ao ser revelada** (porta secreta que vira porta comum).
+- Novo gatilho para qualquer parede: **ao alguém atravessar**. Uma parede que não bloqueia movimento vira um fio de armadilha invisível.
+- Os eventos ficaram mais claros: "Ao abrir", "Ao fechar", "Ao trancar"... (em inglês "When opens", "When closes"...), sem a palavra "porta".
+- O gatilho de parede agora se chama "Parede", e o aviso de "não é porta" só aparece quando um evento de porta está marcado.
+
 ## v3.2.0
 
 Primeira versão publicada. O módulo passa a se chamar **Navegador de Mundos** (o id continua `navegador-mapas`).

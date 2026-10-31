@@ -251,20 +251,24 @@
       "Quem_npcs": "Só NPCs",
       "Quem_ator": "Um personagem específico",
       "Evento": {
-        "entrar": "Token entra na área",
-        "sair": "Token sai da área",
-        "clique": "Clique na área",
-        "portaAbre": "Porta abre",
-        "portaFecha": "Porta fecha",
-        "turnoInicio": "Início do turno (na área)",
-        "turnoFim": "Fim do turno (na área)",
-        "combateInicio": "Combate começa (neste mapa)",
-        "combateFim": "Combate termina (neste mapa)",
-        "portaTranca": "Porta é trancada",
-        "mostrar": "Tile aparece",
-        "esconder": "Tile some",
-        "ligar": "É ligado",
-        "desligar": "É desligado"
+        "entrar": "Ao entrar na área",
+        "sair": "Ao sair da área",
+        "clique": "Ao clicar",
+        "portaAbre": "Ao abrir",
+        "portaFecha": "Ao fechar",
+        "turnoInicio": "No início do turno (na área)",
+        "turnoFim": "No fim do turno (na área)",
+        "combateInicio": "Quando o combate começa",
+        "combateFim": "Quando o combate termina",
+        "portaTranca": "Ao trancar",
+        "mostrar": "Ao aparecer",
+        "esconder": "Ao sumir",
+        "ligar": "Ao ligar",
+        "desligar": "Ao desligar",
+        "portaDestranca": "Ao destrancar",
+        "portaTentativa": "Ao tentar abrir trancada",
+        "portaRevelada": "Ao ser revelada (secreta)",
+        "atravessar": "Ao alguém atravessar"
       },
       "Acao": {
         "mover": "Levar para outro mapa",
@@ -351,7 +355,7 @@
       },
       "Doc": {
         "RegionBehavior": "Região",
-        "Wall": "Porta",
+        "Wall": "Parede",
         "Tile": "Tile",
         "Drawing": "Desenho",
         "AmbientLight": "Luz",
@@ -360,7 +364,7 @@
         "Token": "Token"
       },
       "Origem": "{tipo} no mapa \"{mapa}\"",
-      "NaoEPorta": "Esta parede não é uma porta. Os eventos de porta só disparam em portas.",
+      "NaoEPorta": "Abrir, fechar, trancar, destrancar, tentar abrir e revelar só acontecem se esta parede for uma porta.",
       "AreaRegiao": "Área: o desenho da região.",
       "Area": {
         "Tile": "Área: o retângulo do tile.",
@@ -378,7 +382,8 @@
       "Secao": "Gatilho (Navegador de Mundos)",
       "Configurar": "Configurar gatilho",
       "Remover": "Remover gatilho",
-      "RemoverPergunta": "Remover o gatilho deste objeto? As ações configuradas serão perdidas."
+      "RemoverPergunta": "Remover o gatilho deste objeto? As ações configuradas serão perdidas.",
+      "AtravessarDica": "Dispara quando um token cruza a linha desta parede. Dica: uma parede que não bloqueia movimento vira um fio de armadilha invisível."
     }
   },
   "TYPES": {

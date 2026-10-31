@@ -251,20 +251,24 @@
       "Quem_npcs": "NPCs only",
       "Quem_ator": "A specific character",
       "Evento": {
-        "entrar": "Token enters the area",
-        "sair": "Token leaves the area",
-        "clique": "Click on the area",
-        "portaAbre": "Door opens",
-        "portaFecha": "Door closes",
-        "turnoInicio": "Turn starts (in the area)",
-        "turnoFim": "Turn ends (in the area)",
-        "combateInicio": "Combat starts (on this map)",
-        "combateFim": "Combat ends (on this map)",
-        "portaTranca": "Door is locked",
-        "mostrar": "Tile appears",
-        "esconder": "Tile disappears",
-        "ligar": "Is turned on",
-        "desligar": "Is turned off"
+        "entrar": "When a token enters",
+        "sair": "When a token leaves",
+        "clique": "When clicked",
+        "portaAbre": "When opens",
+        "portaFecha": "When closes",
+        "turnoInicio": "When a turn starts (inside)",
+        "turnoFim": "When a turn ends (inside)",
+        "combateInicio": "When combat starts",
+        "combateFim": "When combat ends",
+        "portaTranca": "When locked",
+        "mostrar": "When it appears",
+        "esconder": "When it disappears",
+        "ligar": "When turned on",
+        "desligar": "When turned off",
+        "portaDestranca": "When unlocked",
+        "portaTentativa": "When tried while locked",
+        "portaRevelada": "When revealed (secret)",
+        "atravessar": "When someone walks through"
       },
       "Acao": {
         "mover": "Move to another map",
@@ -351,7 +355,7 @@
       },
       "Doc": {
         "RegionBehavior": "Region",
-        "Wall": "Door",
+        "Wall": "Wall",
         "Tile": "Tile",
         "Drawing": "Drawing",
         "AmbientLight": "Light",
@@ -360,7 +364,7 @@
         "Token": "Token"
       },
       "Origem": "{tipo} on map \"{mapa}\"",
-      "NaoEPorta": "This wall is not a door. Door events only fire on doors.",
+      "NaoEPorta": "Open, close, lock, unlock, tried while locked and revealed only happen if this wall is a door.",
       "AreaRegiao": "Area: the region's shape.",
       "Area": {
         "Tile": "Area: the tile's rectangle.",
@@ -378,7 +382,8 @@
       "Secao": "Trigger (World Navigator)",
       "Configurar": "Configure trigger",
       "Remover": "Remove trigger",
-      "RemoverPergunta": "Remove the trigger from this object? Its configured actions will be lost."
+      "RemoverPergunta": "Remove the trigger from this object? Its configured actions will be lost.",
+      "AtravessarDica": "Fires when a token crosses this wall's line. Tip: a wall that doesn't block movement becomes an invisible tripwire."
     }
   },
   "TYPES": {

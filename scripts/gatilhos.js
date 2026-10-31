@@ -15,9 +15,10 @@ const CENA = ["combateInicio", "combateFim"];
 const AREA = ["entrar", "sair", "clique", "turnoInicio", "turnoFim"];
 
 // O que pode disparar o gatilho em cada tipo de objeto
+const PORTA = ["portaAbre", "portaFecha", "portaTranca", "portaDestranca", "portaTentativa", "portaRevelada"];
 const EVENTOS = {
-  RegionBehavior: [...AREA, "portaAbre", "portaFecha", "portaTranca", ...CENA],
-  Wall:           ["portaAbre", "portaFecha", "portaTranca", ...CENA],
+  RegionBehavior: [...AREA, ...PORTA, ...CENA],
+  Wall:           [...PORTA, "atravessar", ...CENA],
   Tile:           [...AREA, "mostrar", "esconder", ...CENA],
   Drawing:        [...AREA, ...CENA],
   AmbientLight:   [...AREA, "ligar", "desligar", ...CENA],
@@ -362,6 +363,15 @@ function registrarComportamento() {
   return true;
 }
 
+// Segmento a→b cruza a parede [x1, y1, x2, y2]?
+function cruza(a, b, c) {
+  if (!c) return false;
+  const [x1, y1, x2, y2] = c;
+  const lado = (px, py, qx, qy, rx, ry) => Math.sign((qx - px) * (ry - py) - (qy - py) * (rx - px));
+  return lado(a.x, a.y, b.x, b.y, x1, y1) !== lado(a.x, a.y, b.x, b.y, x2, y2)
+    && lado(x1, y1, x2, y2, a.x, a.y) !== lado(x1, y1, x2, y2, b.x, b.y);
+}
+
 // Tokens entrando/saindo da área de tiles, desenhos, luzes e sons (as regiões já avisam sozinhas)
 const posicoes = new Map(); // tokenUuid -> { x, y } (último centro conhecido)
 function lembrarPosicoes(cena) {
@@ -377,6 +387,11 @@ function aoMoverToken(tk, mud) {
   for (const doc of gatilhosDe(tk.parent)) {
     if (ehRegiao(doc)) continue;
     const q = cfgDe(doc).quando;
+    // Parede: o caminho do token cruzou a linha dela?
+    if (doc.documentName === "Wall") {
+      if (q.includes("atravessar") && cruza(antes, agora, doc.c)) executarGatilho(doc, { evento: "atravessar", tokenUuid: tk.uuid });
+      continue;
+    }
     if (!q.includes("entrar") && !q.includes("sair")) continue;
     const a = naArea(doc, antes), b = naArea(doc, agora);
     if (!a && b) executarGatilho(doc, { evento: "entrar", tokenUuid: tk.uuid });
@@ -530,13 +545,14 @@ function criarEditor() {
         <section>
           <h4><i class="fa-solid fa-bolt"></i> ${t("Gat.Quando")}</h4>
           <div class="marcas">${eventos.map(q => `<label><input type="checkbox" data-quando="${q}" ${tem(q) ? "checked" : ""}> ${t(`Gat.Evento.${q}`)}</label>`).join("")}</div>
-          ${this.tipoDoc === "Wall" && !(this.document.door > 0) ? `<p class="dica">⚠ ${t("Gat.NaoEPorta")}</p>` : ""}
+          ${this.tipoDoc === "Wall" && !(this.document.door > 0) && d.quando.some(q => PORTA.includes(q)) ? `<p class="dica">⚠ ${t("Gat.NaoEPorta")}</p>` : ""}
+          ${tem("atravessar") ? `<p class="dica">${t("Gat.AtravessarDica")}</p>` : ""}
           ${tem("entrar") || tem("sair") ? `<p class="dica">${t(ehRegiao(this.document) ? "Gat.AreaRegiao" : `Gat.Area.${this.tipoDoc}`)}</p>` : ""}
           ${tem("clique") && this.tipoDoc !== "Note" ? `<div class="sub"><div class="linha"><label>${t("Gat.Campo.Distancia")}</label>
               <input type="number" min="0" step="1" data-geral="distancia" value="${d.distancia}"></div>
             <p class="dica">${t("Gat.DistanciaDica")}</p></div>` : ""}
           ${tem("clique") && this.tipoDoc === "Note" ? `<p class="dica">${t("Gat.NotaDica")}</p>` : ""}
-          ${ehRegiao(this.document) && (tem("portaAbre") || tem("portaFecha") || tem("portaTranca")) ? `<div class="sub"><div class="linha"><label>${t("Gat.Campo.Portas")}</label>
+          ${ehRegiao(this.document) && d.quando.some(q => PORTA.includes(q)) ? `<div class="sub"><div class="linha"><label>${t("Gat.Campo.Portas")}</label>
               <span class="contagem">${d.portas.length ? t("Gat.PortasN", { n: d.portas.length }) : t("Gat.QualquerPorta")}</span>
               <button type="button" class="peq" data-a="portas-add"><i class="fa-solid fa-plus"></i> ${t("Gat.UsarSelecionadas")}</button>
               ${d.portas.length ? `<button type="button" class="peq" data-a="portas-limpar">${t("Gat.Limpar")}</button>` : ""}</div>
@@ -875,11 +891,7 @@ Hooks.on("updateToken", aoMoverToken);
 Hooks.on("updateCombat", aoMudarTurno);
 
 // Portas: o gatilho da própria porta, e regiões que escolheram essa porta
-Hooks.on("updateWall", (parede, mud, op, userId) => {
-  if (!("ds" in mud) || op?.nmGatilho || !souMestreAtivo()) return;
-  const S = CONST.WALL_DOOR_STATES;
-  const evento = { [S.OPEN]: "portaAbre", [S.CLOSED]: "portaFecha", [S.LOCKED]: "portaTranca" }[mud.ds];
-  if (!evento) return;
+function eventoDePorta(parede, evento, userId) {
   if (parede.getFlag(ID, "gatilho")) executarGatilho(parede, { evento, userId });
   for (const b of gatilhosDe(parede.parent)) {
     if (!ehRegiao(b)) continue;
@@ -887,7 +899,45 @@ Hooks.on("updateWall", (parede, mud, op, userId) => {
     if (!c.quando.includes(evento) || (c.portas.length && !c.portas.includes(parede.id))) continue;
     executarGatilho(b, { evento, userId });
   }
+}
+
+// Estado anterior de cada porta: fechar depois de trancada = destrancar
+const estadosPorta = new Map(); // wallUuid -> ds
+function lembrarPortas(cena) { for (const w of cena?.walls ?? []) if (w.door > 0) estadosPorta.set(w.uuid, w.ds); }
+
+Hooks.on("updateWall", (parede, mud, op, userId) => {
+  const S = CONST.WALL_DOOR_STATES;
+  const T = CONST.WALL_DOOR_TYPES ?? { DOOR: 1, SECRET: 2 };
+  const antes = estadosPorta.get(parede.uuid);
+  if ("ds" in mud) estadosPorta.set(parede.uuid, mud.ds);
+  if (op?.nmGatilho || !souMestreAtivo()) return;
+  // Porta secreta virando porta comum = revelada
+  if ("door" in mud && mud.door === T.DOOR && op?.nmPortaAntes === T.SECRET) eventoDePorta(parede, "portaRevelada", userId);
+  if (!("ds" in mud)) return;
+  let evento = { [S.OPEN]: "portaAbre", [S.LOCKED]: "portaTranca" }[mud.ds];
+  if (mud.ds === S.CLOSED) evento = antes === S.LOCKED ? "portaDestranca" : "portaFecha";
+  if (evento) eventoDePorta(parede, evento, userId);
 });
+// Guarda o tipo anterior para saber se a porta secreta foi revelada
+Hooks.on("preUpdateWall", (parede, mud, op) => { if ("door" in mud) op.nmPortaAntes = parede.door; });
+Hooks.on("createWall", w => { if (w.door > 0) estadosPorta.set(w.uuid, w.ds); });
+
+// Alguém clicou numa porta trancada (o Foundry só toca o som de trancada; não avisa ninguém)
+function ouvirTentativas() {
+  const DC = foundry.canvas?.containers?.DoorControl ?? globalThis.DoorControl;
+  const original = DC?.prototype?._onMouseDown;
+  if (!original) return console.warn(`${ID} | não achei o controle de portas; "ao tentar abrir trancada" desligado`);
+  DC.prototype._onMouseDown = function (event) {
+    try {
+      const w = this.wall?.document;
+      if (w && w.ds === CONST.WALL_DOOR_STATES.LOCKED && (event?.button ?? 0) === 0 && !game.user.isGM) {
+        if (souMestreAtivo()) eventoDePorta(w, "portaTentativa", game.user.id);
+        else emitir({ acao: "porta", uuid: w.uuid, evento: "portaTentativa", userId: game.user.id });
+      }
+    } catch (err) { console.warn(`${ID} |`, err); }
+    return original.call(this, event);
+  };
+}
 
 // Luzes, sons e tiles ligando/desligando (mostrar/esconder)
 for (const [nome, sim, nao] of [["AmbientLight", "desligar", "ligar"], ["AmbientSound", "desligar", "ligar"], ["Tile", "esconder", "mostrar"]]) {
@@ -912,11 +962,15 @@ Hooks.on("deleteCombat", (combate, op, userId) => {
 
 Hooks.once("ready", () => {
   // Posição de todos os tokens, para saber quem entrou/saiu das áreas
-  if (game.user.isGM) for (const cena of game.scenes) lembrarPosicoes(cena);
+  if (game.user.isGM) for (const cena of game.scenes) { lembrarPosicoes(cena); lembrarPortas(cena); }
+  ouvirTentativas();
 
   game.socket.on(SOCKET, async data => {
     if (data?.acao === "efeito") {
       if (data.userIds?.includes(game.user.id)) aplicarEfeito(data.efeito);
+    } else if (data?.acao === "porta" && souMestreAtivo()) {
+      const w = await fromUuid(data.uuid);
+      if (w?.documentName === "Wall") eventoDePorta(w, data.evento, data.userId);
     } else if (data?.acao === "gatilho" && souMestreAtivo()) {
       const doc = await fromUuid(data.uuid);
       if (doc) executarGatilho(doc, { evento: data.evento, tokenUuid: data.tokenUuid, userId: data.userId });

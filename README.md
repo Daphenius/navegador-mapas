@@ -1,4 +1,4 @@
-# Navegador de Mundos
+# Navegador de Mundos (Em testes)
 
 ## Sobre como este módulo foi feito
 
@@ -7,6 +7,9 @@ Sei que parte da comunidade não gosta de módulos produzidos com IA, então pre
 Tudo começou quando um amigo me disse: “cara, ficou muito mais simples, é só fazer uma macro do que você quer”. Fiz a macro para a minha mesa, fui adaptando conforme a necessidade dos jogos e, no fim, ela virou um módulo. Uso nas minhas próprias sessões e resolvi compartilhar caso seja útil para mais alguém.
 
 Se encontrar bugs ou tiver sugestões, abra uma issue. Todo retorno é bem-vindo.
+
+> [!WARNING]
+> **Módulo em testes.** Ainda não está completo e pode ter muitos erros e vícios de IA. Use com cuidado, faça backup do mundo antes de instalar e, se algo der errado, abra uma issue.
 
 ---
 
@@ -68,7 +71,8 @@ Coloque um gatilho em **portas, tiles, luzes, sons, notas, desenhos e regiões**
 
 **Quando dispara** (depende do objeto):
 - token entra ou sai da área, ou clica nela (com distância máxima);
-- porta abre, fecha ou é trancada;
+- porta abre, fecha, é trancada ou destrancada, alguém tenta abrir trancada, ou uma porta secreta é revelada;
+- alguém atravessa uma parede (uma parede que não bloqueia movimento vira um fio de armadilha);
 - luz ou som é ligado ou desligado; tile aparece ou some;
 - clique no alfinete da nota;
 - início ou fim do turno de um token dentro da área;
@@ -120,7 +124,7 @@ api.editarGatilho(uuid);                      // abre o editor do gatilho
 
 ## English
 
-**World Navigator** is a GM map browser for Foundry VTT. It has folders, favorites, tags and saved player groups. You can send each player to a different map by dragging their portrait (like Roll20's Player Page), with arrival points, a transition screen, per-map music, portals, and triggers on doors, tiles, lights, sounds, notes, drawings and regions. The interface is translated into English. Tested on Foundry VTT v14 with the D&D 5e system.
+**World Navigator** *(in testing — not complete yet and may contain many bugs and AI quirks)* is a GM map browser for Foundry VTT. It has folders, favorites, tags and saved player groups. You can send each player to a different map by dragging their portrait (like Roll20's Player Page), with arrival points, a transition screen, per-map music, portals, and triggers on doors, tiles, lights, sounds, notes, drawings and regions. The interface is translated into English. Tested on Foundry VTT v14 with the D&D 5e system.
 
 ## Licença
 
