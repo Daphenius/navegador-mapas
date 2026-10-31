@@ -1,0 +1,394 @@
+{
+  "NM": {
+    "Titulo": "World Navigator",
+    "Geral": {
+      "Salvar": "Save",
+      "Limpar": "clear"
+    },
+    "Aviso": {
+      "SoMestre": "Only the GM can use the World Navigator.",
+      "ErroToken": "Could not move {nome}'s token.",
+      "Offline": "{nome} is offline: they will join \"{mapa}\" directly when they connect.",
+      "SemModulo": "The module did not respond in {nome}'s browser. Ask them to press F5.",
+      "TodosPreCarregados": "All online players have already preloaded this map.",
+      "PreCarregandoPara": "Preloading \"{mapa}\" for {n} player(s)...",
+      "TodosEnviados": "All players were sent to \"{mapa}\".",
+      "TokenColocado": "{nome}'s token placed on \"{mapa}\".",
+      "ErroPreCarregar": "{nome} could not preload the map.",
+      "ErroCarregar": "{nome} could not load the map.",
+      "MapaNaoExiste": "That map does not exist."
+    },
+    "Transicao": {
+      "Carregando": "Loading"
+    },
+    "Jog": {
+      "Titulo": "Players",
+      "Nenhum": "No players registered.",
+      "PreCarregando": "preloading {mapa}",
+      "Entrando": "entering {mapa}",
+      "VaiEntrar": "will join {mapa}",
+      "ModuloOk": "Module working in their browser",
+      "ModuloSemResposta": "The module did not respond in their browser. Ask them to press F5.",
+      "SemToken": "No token on this map",
+      "ColocarToken": "Place token here",
+      "SemPersonagem": "no character",
+      "Selecionados": "{n} selected"
+    },
+    "Grupo": {
+      "Titulo": "Groups",
+      "Vazio": "Select players with Ctrl and click \"save as group\".",
+      "SemSelecao": "Select the group's players first.",
+      "Novo": "New group",
+      "Nome": "Group name",
+      "Padrao": "Group {n}",
+      "Renomear": "Rename group",
+      "SalvarSelecao": "save as group",
+      "Selecionar": "Select members",
+      "UsarSelecao": "Replace members with current selection",
+      "Excluir": "Delete group"
+    },
+    "Mapa": {
+      "Titulo": "Maps",
+      "Buscar": "Search map, folder, note or tag...",
+      "Criar": "Create map",
+      "SemMiniatura": "No thumbnail — generate it from the ⋮ menu",
+      "Ativa": "ACTIVE",
+      "VoceAqui": "You are here",
+      "PreCarregando": "Preloading",
+      "PreCarregado": "Preloaded by {n} player(s)",
+      "Carregando": "loading...",
+      "TemChegada": "Has an arrival point",
+      "MusicaLocal": "Music for whoever enters",
+      "MusicaTodos": "Music for everyone",
+      "ForaNav": "Hidden from the navigation bar",
+      "Favoritar": "Add to favorites",
+      "Desfavoritar": "Remove from favorites",
+      "Opcoes": "Map options",
+      "NenhumEncontrado": "No maps found.",
+      "NenhumCriado": "No maps created yet."
+    },
+    "Pasta": {
+      "Vazia": "Empty folder — drag maps here.",
+      "Opcoes": "Folder options",
+      "Criar": "Create folder",
+      "RecolherTodas": "Collapse all folders",
+      "CriarMapaAqui": "Create map in this folder",
+      "CriarSub": "Create subfolder",
+      "Editar": "Edit folder (name, color, sorting)",
+      "Recolher": "Collapse",
+      "Expandir": "Expand",
+      "Excluir": "Delete folder",
+      "DentroDelaMesma": "A folder cannot be placed inside itself.",
+      "ErroMover": "Could not move the folder: {erro}"
+    },
+    "Etq": {
+      "DicaFiltro": "Click to filter · right-click changes the color",
+      "Cor": "Color of tag \"{etq}\"",
+      "EscolhaCor": "Color"
+    },
+    "Faixa": {
+      "Favoritos": "Favorites",
+      "Recentes": "Recent"
+    },
+    "Opcao": {
+      "Precarregar": "Preload the map before sending",
+      "LevarToken": "Bring the character's token along"
+    },
+    "Dica": {
+      "Geral": "Drag a player or a group onto a map (or click it, then click the map). Ctrl selects several; Esc clears. Drag maps onto others to reorder, or onto folders to move them. Double-click a map to view it."
+    },
+    "Memoria": {
+      "LiberarDica": "Free memory: unload every map nobody is on",
+      "SemNinguem": "maps with nobody on them",
+      "SemSuporte": "This Foundry version does not let the module unload textures.",
+      "Voce": "you",
+      "Liberada": "Memory freed ({alvo}): ~{mb} across {n} browser(s).",
+      "Nada": "Nothing was unloaded ({alvo}).",
+      "EmUso": "Still loaded for whoever is on it: {nomes}.",
+      "SemResposta": "No answer from: {nomes}."
+    },
+    "Menu": {
+      "Ver": "View (only me)",
+      "Ativar": "Activate map (everyone goes)",
+      "PuxarTodos": "Pull all players here",
+      "Precarregar": "Preload for players",
+      "Descarregar": "Unload from memory (everyone)",
+      "Detalhes": "Note, tags and music",
+      "DefinirChegada": "Set arrival point",
+      "MudarChegada": "Change arrival point",
+      "RemoverChegada": "Remove arrival point",
+      "Configurar": "Configure map",
+      "TirarNav": "Hide from navigation bar",
+      "MostrarNav": "Show in navigation bar",
+      "Miniatura": "Generate thumbnail",
+      "Duplicar": "Duplicate",
+      "NomeCopia": "{nome} (Copy)",
+      "Excluir": "Delete map"
+    },
+    "Ordem": {
+      "Manual": "Folder \"{pasta}\" switched to manual sorting."
+    },
+    "Miniatura": {
+      "Gerando": "Generating thumbnail for \"{mapa}\"...",
+      "Pronta": "Thumbnail for \"{mapa}\" ready."
+    },
+    "Detalhes": {
+      "Titulo": "Details: {mapa}",
+      "Nota": "GM note",
+      "NotaExemplo": "level 5, boss in room 3",
+      "NotaDica": "Shown on the map card, only in the GM's window.",
+      "Etiquetas": "Tags",
+      "EtiquetasExemplo": "combat, city, dungeon",
+      "EtiquetasDica": "Separate with commas.",
+      "Musica": "Music (playlist)",
+      "Nenhuma": "none",
+      "TocarPara": "Play for",
+      "ModoLocal": "Only whoever enters the map",
+      "ModoTodos": "Everyone (the GM plays the playlist)",
+      "PararOutras": "Stop other playlists (\"everyone\" mode)",
+      "MusicaDica": "Uses Foundry's native playlists, including those created by Audio Console. \"Only whoever enters\" plays in the browser of whoever is on the map and stops when they leave."
+    },
+    "Chegada": {
+      "Clique": "Click the map where tokens should arrive. Esc or right-click cancels.",
+      "Cancelado": "Arrival point unchanged.",
+      "Definido": "Arrival point for \"{mapa}\" set."
+    },
+    "Portal": {
+      "Nome": "Portal (World Navigator)",
+      "Pergunta": "<strong>{token}</strong> stepped into a portal to <strong>{mapa}</strong>. Let them through?",
+      "SemMestre": "The portal needs a connected GM.",
+      "Erro": "The portal failed. Check the console (F12).",
+      "FIELDS": {
+        "destino": {
+          "label": "Destination map",
+          "hint": "Where the token (and the players who own it) go when they enter this region."
+        },
+        "regiao": {
+          "label": "Arrival region (optional)",
+          "hint": "A region on the destination map. Empty: uses the map's arrival point (or its center)."
+        },
+        "confirmar": {
+          "label": "Ask the GM for confirmation",
+          "hint": "The GM must approve before the token goes through."
+        }
+      }
+    },
+    "Nav": {
+      "Botao": "World Navigator (Shift+M)"
+    },
+    "Atalho": {
+      "Abrir": "Open the World Navigator"
+    },
+    "Config": {
+      "LembrarLugar": {
+        "Nome": "Players return to their last map",
+        "Dica": "On joining or reloading (F5), the player opens directly on the last map they were on, without loading the active map first."
+      },
+      "Transicao": {
+        "Nome": "Transition screen",
+        "Dica": "When the GM sends a player to another map, shows the map's name (the name players see) while it loads.",
+        "Fundo": "Name over a blurred thumbnail",
+        "SoNome": "Name only",
+        "Off": "Off"
+      },
+      "LiberarAnterior": {
+        "Nome": "Automatically unload the previous map",
+        "Dica": "When changing maps, the map the person left is removed from memory (GM and players). Saves RAM, but going back loads everything again."
+      },
+      "OcultarNavMestre": {
+        "Nome": "Hide the scene navigation bar for the GM",
+        "Dica": "Hides Foundry's scene navigation for the GM, leaving only the World Navigator button."
+      },
+      "OcultarNavJogadores": {
+        "Nome": "Hide the scene navigation bar for players",
+        "Dica": "Players no longer see (or use) scene navigation. Only the GM moves them between maps."
+      },
+      "OcultarAbaCenas": {
+        "Nome": "Hide the Scenes tab in the sidebar",
+        "Dica": "Hides the Scenes tab on the right, since the World Navigator does everything it does. Maps are not deleted: turn it off to bring the tab back."
+      }
+    },
+    "Gat": {
+      "Nome": "Trigger (World Navigator)",
+      "Editor": "Trigger editor (World Navigator)",
+      "Titulo": "Trigger: {nome}",
+      "AbrirEditor": "Open the trigger editor",
+      "Narrador": "Narrator",
+      "Confirmar": "Trigger",
+      "Pergunta": "<strong>{quem}</strong> fired the trigger <strong>{gatilho}</strong>. Run it?",
+      "ErroAcao": "Trigger \"{gatilho}\": action \"{acao}\" failed. Check the console (F12).",
+      "Longe": "You are too far away to interact with that.",
+      "NaoEncontrado": "Trigger not found.",
+      "Usados": "fired {n}x so far",
+      "Zerar": "reset",
+      "UsosDica": "How many times it can fire. 0 = unlimited.",
+      "Quando": "When",
+      "Quem": "Who can fire it",
+      "Acoes": "Actions (in order)",
+      "SemAcoes": "No actions yet. Pick one below.",
+      "Adicionar": "+ Add action...",
+      "Salvar": "Save trigger",
+      "DistanciaDica": "Maximum distance, in squares, between the player's token and the clicked point. 0 = from anywhere. The GM fires it with Alt+click.",
+      "PortasN": "{n} door(s)",
+      "QualquerPorta": "any door on this map",
+      "UsarSelecionadas": "Add selected",
+      "Limpar": "clear",
+      "PortasDica": "On the Walls layer, select the doors on the map and click \"Add selected\".",
+      "TurnoDica": "Turn: fires when the turn of a token inside the area starts or ends.",
+      "ArrasteAtor": "Drag an actor from the sidebar here",
+      "SoAtor": "Drag an actor.",
+      "PontoChegada": "Map's arrival point",
+      "Arquivo": "file path",
+      "Ouvir": "Listen",
+      "ObjetosN": "{n} object(s)",
+      "UsarSelecionados": "Add selected",
+      "SemOutros": "There are no other triggers on this map.",
+      "AbraOMapa": "Open the map \"{mapa}\" to select things on it.",
+      "SelecionePortas": "Select one or more doors on the Walls layer.",
+      "SelecioneObjetos": "Select tiles, tokens, lights, sounds, notes or drawings on the map (you can go layer by layer adding them).",
+      "Quem_todos": "Any token or person",
+      "Quem_jogadores": "Players only",
+      "Quem_npcs": "NPCs only",
+      "Quem_ator": "A specific character",
+      "Evento": {
+        "entrar": "Token enters the area",
+        "sair": "Token leaves the area",
+        "clique": "Click on the area",
+        "portaAbre": "Door opens",
+        "portaFecha": "Door closes",
+        "turnoInicio": "Turn starts (in the area)",
+        "turnoFim": "Turn ends (in the area)",
+        "combateInicio": "Combat starts (on this map)",
+        "combateFim": "Combat ends (on this map)",
+        "portaTranca": "Door is locked",
+        "mostrar": "Tile appears",
+        "esconder": "Tile disappears",
+        "ligar": "Is turned on",
+        "desligar": "Is turned off"
+      },
+      "Acao": {
+        "mover": "Move to another map",
+        "som": "Sound effect",
+        "musica": "Music (playlist)",
+        "chat": "Chat message",
+        "diario": "Open journal",
+        "imagem": "Show image",
+        "camera": "Move the camera",
+        "portas": "Doors",
+        "visibilidade": "Show / hide objects",
+        "escuridao": "Map darkness",
+        "gatilho": "Another trigger",
+        "esperar": "Wait"
+      },
+      "AcaoDica": {
+        "mover": "Moves the token (with HP and effects) and the players who own it, with the transition screen.",
+        "som": "A short sound, like a creaking door, a button or a lever. Plays once.",
+        "musica": "Plays or stops a native playlist (including Audio Console ones) for the whole table.",
+        "chat": "You can use {token}, {jogador} and {mapa} in the text.",
+        "diario": "Opens the journal or page for whoever needs to see it. If permission is missing, the GM grants observer permission.",
+        "imagem": "Opens the image in a window for whoever needs to see it.",
+        "camera": "Pans the camera to the region. Zoom 0 keeps the current zoom.",
+        "portas": "Select the doors on the Walls layer and click \"Add selected\".",
+        "visibilidade": "Works with tiles, tokens, lights, sounds and drawings. Go layer by layer adding them.",
+        "escuridao": "0 = bright day, 1 = total darkness. Duration in seconds.",
+        "gatilho": "\"Run now\" runs the other trigger's actions immediately, ignoring its \"when\".",
+        "esperar": "Pauses before the next action (e.g. lever sound, then the door opens)."
+      },
+      "Campo": {
+        "Nome": "Name",
+        "Ativo": "Active",
+        "Usos": "Use limit",
+        "Confirmar": "Ask the GM to confirm",
+        "Distancia": "Distance (squares)",
+        "Portas": "Doors",
+        "Quem": "Filter",
+        "Ator": "Character",
+        "destino": "Destination map",
+        "regiao": "Region",
+        "quem": "Who goes",
+        "arquivo": "File",
+        "volume": "Volume",
+        "para": "For whom",
+        "playlist": "Playlist",
+        "modo": "What to do",
+        "texto": "Text",
+        "como": "How",
+        "diario": "Journal or page",
+        "titulo": "Title",
+        "zoom": "Zoom",
+        "portas": "Doors",
+        "estado": "What to do",
+        "alvos": "Objects",
+        "valor": "Darkness",
+        "duracao": "Duration (s)",
+        "segundos": "Seconds"
+      },
+      "Opc": {
+        "token": "The token that fired it",
+        "jogadores": "All player tokens on the map",
+        "tocar": "Play",
+        "parar": "Stop",
+        "pararTodas": "Stop all playlists",
+        "narrador": "Narration (everyone sees)",
+        "sussurro": "Whisper to whoever fired it",
+        "soMestre": "GM only",
+        "abrir": "Open",
+        "fechar": "Close",
+        "trancar": "Lock",
+        "destrancar": "Unlock",
+        "alternar": "Toggle",
+        "mostrar": "Show",
+        "esconder": "Hide",
+        "executar": "Run now",
+        "ativar": "Enable",
+        "desativar": "Disable"
+      },
+      "Para": {
+        "disparou": "Whoever fired it",
+        "mapa": "Everyone on this map",
+        "todos": "Everyone",
+        "mestre": "GM only"
+      },
+      "Doc": {
+        "RegionBehavior": "Region",
+        "Wall": "Door",
+        "Tile": "Tile",
+        "Drawing": "Drawing",
+        "AmbientLight": "Light",
+        "AmbientSound": "Ambient sound",
+        "Note": "Note",
+        "Token": "Token"
+      },
+      "Origem": "{tipo} on map \"{mapa}\"",
+      "NaoEPorta": "This wall is not a door. Door events only fire on doors.",
+      "AreaRegiao": "Area: the region's shape.",
+      "Area": {
+        "Tile": "Area: the tile's rectangle.",
+        "Drawing": "Area: the drawing's shape (it can be a hidden drawing, as an invisible zone).",
+        "AmbientLight": "Area: the light's reach (dim light radius).",
+        "AmbientSound": "Area: the sound's radius."
+      },
+      "NotaDica": "Fires when someone clicks the note's pin (the journal opens as usual).",
+      "EsteObjeto": "This object (center)",
+      "SalvePrimeiro": "Save the object first to add a trigger to it.",
+      "Nenhum": "No trigger.",
+      "Ativo": "Active",
+      "Desativado": "Disabled",
+      "AcoesN": "{n} action(s)",
+      "Secao": "Trigger (World Navigator)",
+      "Configurar": "Configure trigger",
+      "Remover": "Remove trigger",
+      "RemoverPergunta": "Remove the trigger from this object? Its configured actions will be lost."
+    }
+  },
+  "TYPES": {
+    "RegionBehavior": {
+      "navegador-mapas.portal": "Portal (World Navigator)",
+      "navegador-mapas.gatilho": "Trigger (World Navigator)",
+      "navegador-mapas": {
+        "portal": "Portal (World Navigator)",
+        "gatilho": "Trigger (World Navigator)"
+      }
+    }
+  }
+}

@@ -1,0 +1,394 @@
+{
+  "NM": {
+    "Titulo": "Navegador de Mundos",
+    "Geral": {
+      "Salvar": "Salvar",
+      "Limpar": "limpar"
+    },
+    "Aviso": {
+      "SoMestre": "Apenas o mestre pode usar o Navegador de Mundos.",
+      "ErroToken": "Não consegui mover o token de {nome}.",
+      "Offline": "{nome} está offline: vai entrar direto em \"{mapa}\" quando conectar.",
+      "SemModulo": "O módulo não respondeu no navegador de {nome}. Peça para ele apertar F5.",
+      "TodosPreCarregados": "Todos os jogadores online já pré-carregaram este mapa.",
+      "PreCarregandoPara": "Pré-carregando \"{mapa}\" para {n} jogador(es)...",
+      "TodosEnviados": "Todos os jogadores foram enviados para \"{mapa}\".",
+      "TokenColocado": "Token de {nome} colocado em \"{mapa}\".",
+      "ErroPreCarregar": "{nome} não conseguiu pré-carregar o mapa.",
+      "ErroCarregar": "{nome} não conseguiu carregar o mapa.",
+      "MapaNaoExiste": "Esse mapa não existe."
+    },
+    "Transicao": {
+      "Carregando": "Carregando"
+    },
+    "Jog": {
+      "Titulo": "Jogadores",
+      "Nenhum": "Nenhum jogador cadastrado.",
+      "PreCarregando": "pré-carregando {mapa}",
+      "Entrando": "entrando em {mapa}",
+      "VaiEntrar": "vai entrar em {mapa}",
+      "ModuloOk": "Módulo funcionando no navegador dele",
+      "ModuloSemResposta": "O módulo não respondeu no navegador dele. Peça para ele apertar F5.",
+      "SemToken": "Sem token neste mapa",
+      "ColocarToken": "Colocar token aqui",
+      "SemPersonagem": "sem personagem",
+      "Selecionados": "{n} selecionados"
+    },
+    "Grupo": {
+      "Titulo": "Grupos",
+      "Vazio": "Selecione jogadores com Ctrl e clique em \"salvar como grupo\".",
+      "SemSelecao": "Selecione os jogadores do grupo primeiro.",
+      "Novo": "Novo grupo",
+      "Nome": "Nome do grupo",
+      "Padrao": "Grupo {n}",
+      "Renomear": "Renomear grupo",
+      "SalvarSelecao": "salvar como grupo",
+      "Selecionar": "Selecionar os membros",
+      "UsarSelecao": "Trocar membros pela seleção atual",
+      "Excluir": "Excluir grupo"
+    },
+    "Mapa": {
+      "Titulo": "Mapas",
+      "Buscar": "Buscar mapa, pasta, nota ou etiqueta...",
+      "Criar": "Criar mapa",
+      "SemMiniatura": "Sem miniatura — gere pelo menu ⋮",
+      "Ativa": "ATIVA",
+      "VoceAqui": "Você está aqui",
+      "PreCarregando": "Pré-carregando",
+      "PreCarregado": "Pré-carregado por {n} jogador(es)",
+      "Carregando": "carregando...",
+      "TemChegada": "Tem ponto de chegada",
+      "MusicaLocal": "Música para quem entra",
+      "MusicaTodos": "Música para todos",
+      "ForaNav": "Fora da barra de navegação",
+      "Favoritar": "Favoritar",
+      "Desfavoritar": "Tirar dos favoritos",
+      "Opcoes": "Opções do mapa",
+      "NenhumEncontrado": "Nenhum mapa encontrado.",
+      "NenhumCriado": "Nenhum mapa criado ainda."
+    },
+    "Pasta": {
+      "Vazia": "Pasta vazia — arraste mapas para cá.",
+      "Opcoes": "Opções da pasta",
+      "Criar": "Criar pasta",
+      "RecolherTodas": "Recolher todas as pastas",
+      "CriarMapaAqui": "Criar mapa nesta pasta",
+      "CriarSub": "Criar subpasta",
+      "Editar": "Editar pasta (nome, cor, ordem)",
+      "Recolher": "Recolher",
+      "Expandir": "Expandir",
+      "Excluir": "Excluir pasta",
+      "DentroDelaMesma": "Não dá para colocar uma pasta dentro dela mesma.",
+      "ErroMover": "Não foi possível mover a pasta: {erro}"
+    },
+    "Etq": {
+      "DicaFiltro": "Clique para filtrar · botão direito muda a cor",
+      "Cor": "Cor da etiqueta \"{etq}\"",
+      "EscolhaCor": "Cor"
+    },
+    "Faixa": {
+      "Favoritos": "Favoritos",
+      "Recentes": "Recentes"
+    },
+    "Opcao": {
+      "Precarregar": "Pré-carregar o mapa antes de enviar",
+      "LevarToken": "Levar o token do personagem junto"
+    },
+    "Dica": {
+      "Geral": "Arraste um jogador ou um grupo até um mapa (ou clique nele e depois no mapa). Ctrl seleciona vários; Esc limpa. Arraste mapas sobre outros para mudar a ordem, ou sobre pastas para mudar de pasta. Clique duplo no mapa para visualizá-lo."
+    },
+    "Memoria": {
+      "LiberarDica": "Liberar memória: descarrega de todos os mapas em que ninguém está",
+      "SemNinguem": "mapas sem ninguém dentro",
+      "SemSuporte": "Esta versão do Foundry não permite descarregar texturas pelo módulo.",
+      "Voce": "você",
+      "Liberada": "Memória liberada ({alvo}): ~{mb} em {n} navegador(es).",
+      "Nada": "Nada foi descarregado ({alvo}).",
+      "EmUso": "Continua carregado para quem está dentro dele: {nomes}.",
+      "SemResposta": "Sem resposta de: {nomes}."
+    },
+    "Menu": {
+      "Ver": "Ver (só eu vou)",
+      "Ativar": "Ativar mapa (todos vão)",
+      "PuxarTodos": "Puxar todos os jogadores para cá",
+      "Precarregar": "Pré-carregar para os jogadores",
+      "Descarregar": "Descarregar da memória (todos)",
+      "Detalhes": "Nota, etiquetas e música",
+      "DefinirChegada": "Definir ponto de chegada",
+      "MudarChegada": "Mudar ponto de chegada",
+      "RemoverChegada": "Remover ponto de chegada",
+      "Configurar": "Configurar mapa",
+      "TirarNav": "Tirar da barra de navegação",
+      "MostrarNav": "Mostrar na barra de navegação",
+      "Miniatura": "Gerar miniatura",
+      "Duplicar": "Duplicar",
+      "NomeCopia": "{nome} (Cópia)",
+      "Excluir": "Excluir mapa"
+    },
+    "Ordem": {
+      "Manual": "A pasta \"{pasta}\" passou para ordem manual."
+    },
+    "Miniatura": {
+      "Gerando": "Gerando miniatura de \"{mapa}\"...",
+      "Pronta": "Miniatura de \"{mapa}\" pronta."
+    },
+    "Detalhes": {
+      "Titulo": "Detalhes: {mapa}",
+      "Nota": "Nota do mestre",
+      "NotaExemplo": "nível 5, chefe na sala 3",
+      "NotaDica": "Aparece no cartão do mapa, só na janela do mestre.",
+      "Etiquetas": "Etiquetas",
+      "EtiquetasExemplo": "combate, cidade, masmorra",
+      "EtiquetasDica": "Separe por vírgula.",
+      "Musica": "Música (playlist)",
+      "Nenhuma": "nenhuma",
+      "TocarPara": "Tocar para",
+      "ModoLocal": "Só quem entrar no mapa",
+      "ModoTodos": "Todos (o mestre toca a playlist)",
+      "PararOutras": "Parar as outras playlists (modo \"todos\")",
+      "MusicaDica": "Usa as playlists nativas do Foundry, inclusive as criadas pelo Audio Console. \"Só quem entrar\" toca no navegador de quem está no mapa e para quando ele sai."
+    },
+    "Chegada": {
+      "Clique": "Clique no mapa onde os tokens devem chegar. Esc ou botão direito cancela.",
+      "Cancelado": "Ponto de chegada não alterado.",
+      "Definido": "Ponto de chegada de \"{mapa}\" definido."
+    },
+    "Portal": {
+      "Nome": "Portal (Navegador de Mundos)",
+      "Pergunta": "<strong>{token}</strong> entrou num portal para <strong>{mapa}</strong>. Deixar passar?",
+      "SemMestre": "O portal precisa de um mestre conectado.",
+      "Erro": "O portal falhou. Veja o console (F12).",
+      "FIELDS": {
+        "destino": {
+          "label": "Mapa de destino",
+          "hint": "Para onde o token (e os jogadores donos dele) vão ao entrar nesta região."
+        },
+        "regiao": {
+          "label": "Região de chegada (opcional)",
+          "hint": "Uma região do mapa de destino. Vazio: usa o ponto de chegada do mapa (ou o centro)."
+        },
+        "confirmar": {
+          "label": "Pedir confirmação ao mestre",
+          "hint": "O mestre precisa aprovar antes de o token passar."
+        }
+      }
+    },
+    "Nav": {
+      "Botao": "Navegador de Mundos (Shift+M)"
+    },
+    "Atalho": {
+      "Abrir": "Abrir o Navegador de Mundos"
+    },
+    "Config": {
+      "LembrarLugar": {
+        "Nome": "Jogadores voltam ao último mapa",
+        "Dica": "Ao entrar ou recarregar (F5), o jogador abre direto no último mapa em que estava, sem carregar o mapa ativo antes."
+      },
+      "Transicao": {
+        "Nome": "Tela de transição",
+        "Dica": "Quando o mestre envia um jogador para outro mapa, mostra o nome do mapa (o nome que os jogadores veem) enquanto ele carrega.",
+        "Fundo": "Nome com a miniatura desfocada ao fundo",
+        "SoNome": "Só o nome",
+        "Off": "Desligada"
+      },
+      "LiberarAnterior": {
+        "Nome": "Descarregar automaticamente o mapa anterior",
+        "Dica": "Ao trocar de mapa, o mapa de onde a pessoa saiu é tirado da memória (mestre e jogadores). Economiza RAM, mas voltar para ele carrega tudo de novo."
+      },
+      "OcultarNavMestre": {
+        "Nome": "Ocultar a barra de navegação de mapas para o mestre",
+        "Dica": "Esconde a navegação de mapas do Foundry para o mestre, deixando só o botão do Navegador de Mundos."
+      },
+      "OcultarNavJogadores": {
+        "Nome": "Ocultar a barra de navegação de mapas para os jogadores",
+        "Dica": "Os jogadores deixam de ver (e de usar) a navegação de mapas. Só o mestre os move entre mapas."
+      },
+      "OcultarAbaCenas": {
+        "Nome": "Ocultar a aba Cenas da barra lateral",
+        "Dica": "Esconde a aba de Cenas do lado direito, já que o Navegador de Mundos faz tudo que ela faz. Os mapas não são apagados: desligue para a aba voltar."
+      }
+    },
+    "Gat": {
+      "Nome": "Gatilho (Navegador de Mundos)",
+      "Editor": "Editor de gatilho (Navegador de Mundos)",
+      "Titulo": "Gatilho: {nome}",
+      "AbrirEditor": "Abrir o editor do gatilho",
+      "Narrador": "Narrador",
+      "Confirmar": "Gatilho",
+      "Pergunta": "<strong>{quem}</strong> disparou o gatilho <strong>{gatilho}</strong>. Executar?",
+      "ErroAcao": "Gatilho \"{gatilho}\": a ação \"{acao}\" falhou. Veja o console (F12).",
+      "Longe": "Você está longe demais para interagir com isso.",
+      "NaoEncontrado": "Gatilho não encontrado.",
+      "Usados": "já disparou {n}x",
+      "Zerar": "zerar",
+      "UsosDica": "Quantas vezes pode disparar. 0 = sem limite.",
+      "Quando": "Quando",
+      "Quem": "Quem pode disparar",
+      "Acoes": "Ações (em ordem)",
+      "SemAcoes": "Nenhuma ação ainda. Escolha abaixo.",
+      "Adicionar": "+ Adicionar ação...",
+      "Salvar": "Salvar gatilho",
+      "DistanciaDica": "Distância máxima, em casas, entre o token do jogador e o ponto clicado. 0 = de qualquer lugar. O mestre dispara com Alt+clique.",
+      "PortasN": "{n} porta(s)",
+      "QualquerPorta": "qualquer porta deste mapa",
+      "UsarSelecionadas": "Adicionar as selecionadas",
+      "Limpar": "limpar",
+      "PortasDica": "Na camada Paredes, selecione as portas no mapa e clique em \"Adicionar as selecionadas\".",
+      "TurnoDica": "Turno: dispara quando começa ou termina o turno de um token que está dentro da área.",
+      "ArrasteAtor": "Arraste um ator da barra lateral para cá",
+      "SoAtor": "Arraste um ator.",
+      "PontoChegada": "Ponto de chegada do mapa",
+      "Arquivo": "caminho do arquivo",
+      "Ouvir": "Ouvir",
+      "ObjetosN": "{n} objeto(s)",
+      "UsarSelecionados": "Adicionar os selecionados",
+      "SemOutros": "Não há outros gatilhos neste mapa.",
+      "AbraOMapa": "Abra o mapa \"{mapa}\" para selecionar nele.",
+      "SelecionePortas": "Selecione uma ou mais portas na camada Paredes.",
+      "SelecioneObjetos": "Selecione tiles, tokens, luzes, sons, notas ou desenhos no mapa (pode ir de camada em camada adicionando).",
+      "Quem_todos": "Qualquer token ou pessoa",
+      "Quem_jogadores": "Só jogadores",
+      "Quem_npcs": "Só NPCs",
+      "Quem_ator": "Um personagem específico",
+      "Evento": {
+        "entrar": "Token entra na área",
+        "sair": "Token sai da área",
+        "clique": "Clique na área",
+        "portaAbre": "Porta abre",
+        "portaFecha": "Porta fecha",
+        "turnoInicio": "Início do turno (na área)",
+        "turnoFim": "Fim do turno (na área)",
+        "combateInicio": "Combate começa (neste mapa)",
+        "combateFim": "Combate termina (neste mapa)",
+        "portaTranca": "Porta é trancada",
+        "mostrar": "Tile aparece",
+        "esconder": "Tile some",
+        "ligar": "É ligado",
+        "desligar": "É desligado"
+      },
+      "Acao": {
+        "mover": "Levar para outro mapa",
+        "som": "Efeito sonoro",
+        "musica": "Música (playlist)",
+        "chat": "Mensagem no chat",
+        "diario": "Abrir diário",
+        "imagem": "Mostrar imagem",
+        "camera": "Mover a câmera",
+        "portas": "Portas",
+        "visibilidade": "Mostrar / esconder objetos",
+        "escuridao": "Escuridão do mapa",
+        "gatilho": "Outro gatilho",
+        "esperar": "Esperar"
+      },
+      "AcaoDica": {
+        "mover": "Leva o token (com vida e efeitos) e os jogadores donos dele, com a tela de transição.",
+        "som": "Som curto, como porta rangendo, botão ou alavanca. Toca uma vez.",
+        "musica": "Toca ou para uma playlist nativa (inclusive do Audio Console) para a mesa toda.",
+        "chat": "Pode usar {token}, {jogador} e {mapa} no texto.",
+        "diario": "Abre o diário ou a página na tela de quem precisa ver. Se faltar permissão, o mestre dá permissão de observador.",
+        "imagem": "Abre a imagem numa janela na tela de quem precisa ver.",
+        "camera": "Leva a câmera até a região. Zoom 0 mantém o zoom atual.",
+        "portas": "Selecione as portas na camada Paredes e clique em \"Adicionar as selecionadas\".",
+        "visibilidade": "Funciona com tiles, tokens, luzes, sons e desenhos. Vá de camada em camada adicionando.",
+        "escuridao": "0 = dia claro, 1 = escuro total. Duração em segundos.",
+        "gatilho": "\"Executar\" roda as ações do outro gatilho na hora, sem conferir o \"quando\".",
+        "esperar": "Pausa antes da próxima ação (ex.: som da alavanca e depois a porta abre)."
+      },
+      "Campo": {
+        "Nome": "Nome",
+        "Ativo": "Ativo",
+        "Usos": "Limite de usos",
+        "Confirmar": "Pedir confirmação ao mestre",
+        "Distancia": "Distância (casas)",
+        "Portas": "Portas",
+        "Quem": "Filtro",
+        "Ator": "Personagem",
+        "destino": "Mapa de destino",
+        "regiao": "Região",
+        "quem": "Quem vai",
+        "arquivo": "Arquivo",
+        "volume": "Volume",
+        "para": "Para quem",
+        "playlist": "Playlist",
+        "modo": "O que fazer",
+        "texto": "Texto",
+        "como": "Como",
+        "diario": "Diário ou página",
+        "titulo": "Título",
+        "zoom": "Zoom",
+        "portas": "Portas",
+        "estado": "O que fazer",
+        "alvos": "Objetos",
+        "valor": "Escuridão",
+        "duracao": "Duração (s)",
+        "segundos": "Segundos"
+      },
+      "Opc": {
+        "token": "O token que disparou",
+        "jogadores": "Todos os tokens de jogadores do mapa",
+        "tocar": "Tocar",
+        "parar": "Parar",
+        "pararTodas": "Parar todas as playlists",
+        "narrador": "Narração (todos veem)",
+        "sussurro": "Sussurro para quem disparou",
+        "soMestre": "Só para o mestre",
+        "abrir": "Abrir",
+        "fechar": "Fechar",
+        "trancar": "Trancar",
+        "destrancar": "Destrancar",
+        "alternar": "Alternar",
+        "mostrar": "Mostrar",
+        "esconder": "Esconder",
+        "executar": "Executar agora",
+        "ativar": "Ativar",
+        "desativar": "Desativar"
+      },
+      "Para": {
+        "disparou": "Quem disparou",
+        "mapa": "Todos neste mapa",
+        "todos": "Todos",
+        "mestre": "Só o mestre"
+      },
+      "Doc": {
+        "RegionBehavior": "Região",
+        "Wall": "Porta",
+        "Tile": "Tile",
+        "Drawing": "Desenho",
+        "AmbientLight": "Luz",
+        "AmbientSound": "Som ambiente",
+        "Note": "Nota",
+        "Token": "Token"
+      },
+      "Origem": "{tipo} no mapa \"{mapa}\"",
+      "NaoEPorta": "Esta parede não é uma porta. Os eventos de porta só disparam em portas.",
+      "AreaRegiao": "Área: o desenho da região.",
+      "Area": {
+        "Tile": "Área: o retângulo do tile.",
+        "Drawing": "Área: o formato do desenho (pode ser um desenho escondido, como zona invisível).",
+        "AmbientLight": "Área: o alcance da luz (raio da luz fraca).",
+        "AmbientSound": "Área: o raio do som."
+      },
+      "NotaDica": "Dispara quando alguém clica no alfinete da nota (o diário abre normalmente).",
+      "EsteObjeto": "Este objeto (centro)",
+      "SalvePrimeiro": "Salve o objeto primeiro para poder colocar um gatilho.",
+      "Nenhum": "Nenhum gatilho.",
+      "Ativo": "Ativo",
+      "Desativado": "Desativado",
+      "AcoesN": "{n} ação(ões)",
+      "Secao": "Gatilho (Navegador de Mundos)",
+      "Configurar": "Configurar gatilho",
+      "Remover": "Remover gatilho",
+      "RemoverPergunta": "Remover o gatilho deste objeto? As ações configuradas serão perdidas."
+    }
+  },
+  "TYPES": {
+    "RegionBehavior": {
+      "navegador-mapas.portal": "Portal (Navegador de Mundos)",
+      "navegador-mapas.gatilho": "Gatilho (Navegador de Mundos)",
+      "navegador-mapas": {
+        "portal": "Portal (Navegador de Mundos)",
+        "gatilho": "Gatilho (Navegador de Mundos)"
+      }
+    }
+  }
+}
