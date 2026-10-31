@@ -13,7 +13,7 @@ Se encontrar bugs ou tiver sugestões, abra uma issue. Todo retorno é bem-vindo
 
 ---
 
-Um navegador de mapas para o mestre do **Foundry VTT**. Ele organiza os mapas em pastas, favoritos e grupos, permite deixar cada jogador num mapa diferente (como a *Player Page* do Roll20) e cria portais e gatilhos para o mundo reagir aos jogadores.
+Um navegador de mapas para o mestre do **Foundry VTT**. Ele organiza os mapas em pastas, favoritos, etiquetas e grupos e permite deixar cada jogador num mapa diferente (como a *Player Page* do Roll20), com ponto de chegada, tela de transição e música por mapa.
 
 > **Testado no Foundry VTT v14 com o sistema D&D 5e**, nas minhas próprias sessões.
 > Textos em português (Brasil) e inglês.
@@ -63,41 +63,8 @@ Em **Nota, etiquetas e música**, escolha uma playlist nativa do Foundry para o 
 - **Só quem entrar no mapa**: toca no navegador de quem está naquele mapa e para quando a pessoa sai.
 - **Todos**: o mestre toca a playlist para a mesa inteira.
 
-### Portais
-Em uma Região, adicione o comportamento **Portal (Navegador de Mundos)**. Escolha o mapa de destino e, se quiser, uma região de chegada e a confirmação do mestre. Quando o token entra na região, ele vai para o outro mapa com vida e efeitos, e o jogador dono vai junto.
-
-### Gatilhos
-Coloque um gatilho em **portas, tiles, luzes, sons, notas, desenhos e regiões** (tokens não). Abra a configuração do objeto e use a seção **Gatilho (Navegador de Mundos)**. Nas regiões, adicione o comportamento **Gatilho**.
-
-**Quando dispara** (depende do objeto):
-- token entra ou sai da área, ou clica nela (com distância máxima);
-- porta abre, fecha, é trancada ou destrancada, alguém tenta abrir trancada, ou uma porta secreta é revelada;
-- alguém atravessa uma parede (uma parede que não bloqueia movimento vira um fio de armadilha);
-- luz ou som é ligado ou desligado; tile aparece ou some;
-- clique no alfinete da nota;
-- início ou fim do turno de um token dentro da área;
-- combate começa ou termina no mapa.
-
-**Quem pode disparar:** qualquer um, só jogadores, só NPCs ou um personagem específico. Também dá para limitar o número de usos e pedir confirmação do mestre.
-
-**Ações, em ordem:**
-
-| Ação | O que faz |
-|---|---|
-| Efeito sonoro | Som curto (porta, botão, alavanca) para quem disparou, para o mapa ou para todos |
-| Esperar | Pausa entre uma ação e outra |
-| Portas | Abrir, fechar, trancar, destrancar ou alternar |
-| Mostrar / esconder | Tiles, tokens, luzes, sons, notas e desenhos |
-| Escuridão | Muda a escuridão do mapa, com animação |
-| Levar para outro mapa | O token que disparou ou todos os jogadores, com a tela de transição |
-| Mensagem no chat | Narração, sussurro ou só para o mestre. Aceita `{token}`, `{jogador}` e `{mapa}` |
-| Abrir diário | Diário ou página na tela de quem precisa ver |
-| Mostrar imagem | Imagem numa janela na tela de quem precisa ver |
-| Mover a câmera | Leva a câmera até uma região |
-| Música | Tocar ou parar uma playlist |
-| Outro gatilho | Executar agora, ativar, desativar ou alternar |
-
-Os gatilhos são executados pelo mestre conectado. Sem mestre online, eles não disparam.
+### Objetos interativos e gatilhos
+Os gatilhos e portais que existiam até a v3.3 saíram deste módulo. Agora ficam no módulo **[Objetos Vivos](https://github.com/Daphenius/objetos-vivos)**, que transforma tiles, portas e paredes em objetos com ações. Com o Navegador ativo, o Objetos Vivos ganha a ação "Levar a outro mapa".
 
 ### Memória
 - **Liberar memória**: tira da memória os mapas em que ninguém está, no mestre e nos jogadores.
@@ -117,14 +84,12 @@ Em **Configurar Definições → Navegador de Mundos**:
 const api = game.modules.get("navegador-mapas").api;
 api.abrir();                                  // abre a janela (mestre)
 api.enviar(userId, sceneId);                  // envia um ou vários jogadores (lista de ids) para um mapa
-api.portal(token, sceneId, regiaoUuid);       // leva um token para outro mapa, como um portal
-api.dispararGatilho(uuid);                    // executa o gatilho de um objeto ou região
-api.editarGatilho(uuid);                      // abre o editor do gatilho
+api.portal(token, sceneId, regiaoUuid);       // leva um token (e os jogadores donos dele) para outro mapa
 ```
 
 ## English
 
-**World Navigator** *(in testing — not complete yet and may contain many bugs and AI quirks)* is a GM map browser for Foundry VTT. It has folders, favorites, tags and saved player groups. You can send each player to a different map by dragging their portrait (like Roll20's Player Page), with arrival points, a transition screen, per-map music, portals, and triggers on doors, tiles, lights, sounds, notes, drawings and regions. The interface is translated into English. Tested on Foundry VTT v14 with the D&D 5e system.
+**World Navigator** *(in testing — not complete yet and may contain many bugs and AI quirks)* is a GM map browser for Foundry VTT. It has folders, favorites, tags and saved player groups. You can send each player to a different map by dragging their portrait (like Roll20's Player Page), with arrival points, a transition screen and per-map music. Triggers and interactive objects now live in the separate **Living Objects** (objetos-vivos) module. The interface is translated into English. Tested on Foundry VTT v14 with the D&D 5e system.
 
 ## Licença
 

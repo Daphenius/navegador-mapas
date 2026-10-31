@@ -1,8 +1,8 @@
 {
   "id": "navegador-mapas",
   "title": "Navegador de Mundos (Em testes)",
-  "description": "Navegue pelos mundos da sua mesa: aba de mapas com pastas, favoritos e grupos, cada jogador em um mapa diferente (como a Player Page do Roll20), portais, tela de transição e gatilhos em portas, tiles, luzes, sons, notas, desenhos e regiões.",
-  "version": "3.3.0",
+  "description": "Navegue pelos mundos da sua mesa: aba de mapas com pastas, favoritos, etiquetas e grupos, cada jogador em um mapa diferente (como a Player Page do Roll20), ponto de chegada, tela de transição e música por mapa.",
+  "version": "4.0.0",
   "authors": [
     {
       "name": "Daphenius"
@@ -10,7 +10,7 @@
   ],
   "url": "https://github.com/Daphenius/navegador-mapas",
   "manifest": "https://github.com/Daphenius/navegador-mapas/releases/latest/download/module.json",
-  "download": "https://github.com/Daphenius/navegador-mapas/releases/download/v3.3.0/navegador-mapas.zip",
+  "download": "https://github.com/Daphenius/navegador-mapas/releases/download/v4.0.0/navegador-mapas.zip",
   "license": "LICENSE",
   "readme": "README.md",
   "bugs": "https://github.com/Daphenius/navegador-mapas/issues",
@@ -20,8 +20,7 @@
     "verified": "14.369"
   },
   "esmodules": [
-    "scripts/navegador.js",
-    "scripts/gatilhos.js"
+    "scripts/navegador.js"
   ],
   "socket": true,
   "languages": [
@@ -35,11 +34,5 @@
       "name": "English",
       "path": "lang/en.json"
     }
-  ],
-  "documentTypes": {
-    "RegionBehavior": {
-      "portal": {},
-      "gatilho": {}
-    }
-  }
+  ]
 }

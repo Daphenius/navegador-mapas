@@ -1,5 +1,15 @@
 # Changelog
 
+## v4.0.0
+
+### Mudança importante
+- **Os gatilhos e o comportamento de Região "Portal" saíram do Navegador.** Agora eles vivem no módulo separado **Objetos Vivos** (`objetos-vivos`), com uma interface nova.
+- Se você criou gatilhos ou portais na v3.x, eles deixam de funcionar. Comportamentos "Portal" antigos podem aparecer como inválidos nas regiões: é só apagá-los.
+
+### Mantido
+- Toda a janela de mapas: pastas, favoritos, recentes, etiquetas, notas, grupos, ponto de chegada, tela de transição, música por mapa e memória.
+- A função `api.portal(token, sceneId, regiaoUuid)`, que leva um token e os jogadores donos dele para outro mapa. O Objetos Vivos usa ela na ação "Levar a outro mapa".
+
 ## v3.3.0
 
 ### Novidades

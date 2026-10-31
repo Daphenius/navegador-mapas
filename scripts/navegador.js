@@ -5,7 +5,6 @@
 
 const ID = "navegador-mapas";
 const SOCKET = `module.${ID}`;
-const TIPO_PORTAL = `${ID}.portal`;
 const TEMPO_PRECARGA = 120_000;
 const MAX_RECENTES = 6;
 
@@ -554,7 +553,7 @@ async function esperarAnimacao(tokenDoc) {
   } catch {}
 }
 
-// Portais: um token entra numa Região com o comportamento "Portal" e vai para outro mapa
+// Levar um token (e os jogadores donos dele) para outro mapa — usado pela API (ex.: Objetos Vivos)
 const emPortal = new Set();
 function pedirPortal(dados) {
   if (emPortal.has(dados.tokenUuid)) return;
@@ -594,41 +593,6 @@ async function executarPortal({ tokenUuid, sceneId, regiaoUuid, confirmar }) {
   } finally {
     setTimeout(() => portaisEmCurso.delete(tokenUuid), 2000);
   }
-}
-
-function registrarPortal() {
-  const Base = foundry.data?.regionBehaviors?.RegionBehaviorType;
-  const EV = CONST.REGION_EVENTS;
-  if (!Base || !EV?.TOKEN_MOVE_IN) return console.warn(`${ID} | esta versão não tem Comportamentos de Região; portais desligados`);
-  const f = foundry.data.fields;
-
-  class PortalNavegador extends Base {
-    static LOCALIZATION_PREFIXES = ["NM.Portal"];
-
-    static defineSchema() {
-      return {
-        destino: new f.DocumentUUIDField({ type: "Scene" }),
-        regiao: new f.DocumentUUIDField({ type: "Region" }),
-        confirmar: new f.BooleanField({ initial: false })
-      };
-    }
-
-    static async _aoEntrar(event) {
-      if (!event.user?.isSelf || !this.destino) return;
-      const tokenDoc = event.data?.token;
-      if (!tokenDoc) return;
-      const cena = await fromUuid(this.destino);
-      if (!cena || cena.id === tokenDoc.parent?.id) return;
-      await esperarAnimacao(tokenDoc);
-      pedirPortal({ tokenUuid: tokenDoc.uuid, sceneId: cena.id, regiaoUuid: this.regiao || null, confirmar: !!this.confirmar });
-    }
-
-    static events = { [EV.TOKEN_MOVE_IN]: this._aoEntrar };
-  }
-
-  CONFIG.RegionBehavior.dataModels[TIPO_PORTAL] = PortalNavegador;
-  CONFIG.RegionBehavior.typeIcons[TIPO_PORTAL] = "fa-solid fa-dungeon";
-  if (CONFIG.RegionBehavior.typeLabels) CONFIG.RegionBehavior.typeLabels[TIPO_PORTAL] = "NM.Portal.Nome";
 }
 
 // Ponto de chegada: escolher com um clique no mapa e mostrar a bandeirinha para o mestre
@@ -1776,7 +1740,6 @@ function interceptarPrimeiroDesenho() {
 // Registro
 Hooks.once("init", () => {
   injetarEstilo();
-  registrarPortal();
   interceptarPrimeiroDesenho();
 
   const reg = (chave, dados) => game.settings.register(ID, chave, dados);
@@ -1904,9 +1867,12 @@ Hooks.once("ready", () => {
       if (game.user.isGM) return app.enviarVarios(ids, sceneId);
       emitir({ acao: "pedir-envio", userIds: [game.user.id], sceneId });
     },
-    portal: (token, sceneId, regiaoUuid = null) => {
+    // Leva um token (e os jogadores donos dele) para outro mapa, com a tela de transição
+    portal: async (token, sceneId, regiaoUuid = null) => {
       const doc = token?.document ?? token;
-      if (doc?.uuid && game.scenes.has(sceneId)) pedirPortal({ tokenUuid: doc.uuid, sceneId, regiaoUuid, confirmar: false });
+      if (!doc?.uuid || !game.scenes.has(sceneId)) return;
+      await esperarAnimacao(doc);
+      return pedirPortal({ tokenUuid: doc.uuid, sceneId, regiaoUuid, confirmar: false });
     }
   };
 
@@ -1923,5 +1889,3 @@ Hooks.once("ready", () => {
   limparBarras(3000);
 });
 
-// Usado pelos gatilhos (scripts/gatilhos.js)
-export { ID, SOCKET, t, esc, emitir, cfg, comparar, souMestreAtivo, esperarAnimacao, executarPortal, centroDaRegiao, esperarCanvas };
