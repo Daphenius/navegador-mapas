@@ -32,7 +32,6 @@ Depois, ative o módulo no mundo em **Gerenciar Módulos**.
 
 Só o mestre usa o Navegador. Abra de qualquer um destes jeitos:
 - pelo botão ao lado da barra de navegação de cenas;
-- pela ferramenta na barra de controles de tokens;
 - pelo atalho **Shift+M**.
 
 ## Funcionalidades

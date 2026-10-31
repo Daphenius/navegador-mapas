@@ -1,5 +1,9 @@
 # Changelog
 
+## v4.0.1
+
+- Saiu o botão do Navegador da barra de ferramentas de tokens (à esquerda). O Navegador continua abrindo pelo botão ao lado da navegação de cenas e pelo atalho **Shift+M**.
+
 ## v4.0.0
 
 ### Mudança importante

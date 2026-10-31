@@ -1,7 +1,7 @@
 // Navegador de Mundos — Foundry VTT v14
 // Aba de mapas com pastas e envio de cada jogador para um mapa diferente
-// (estilo Player Page do Roll20). Abre pelo botão na navegação de cenas,
-// pela ferramenta de tokens ou com Shift+M.
+// (estilo Player Page do Roll20). Abre pelo botão na navegação de cenas
+// ou com Shift+M.
 
 const ID = "navegador-mapas";
 const SOCKET = `module.${ID}`;
@@ -1782,14 +1782,6 @@ Hooks.once("init", () => {
     restricted: true,
     onDown: () => { abrir(); return true; }
   });
-});
-
-Hooks.on("getSceneControlButtons", controls => {
-  if (!game.user.isGM || !controls.tokens) return;
-  controls.tokens.tools.navegadorMapas = {
-    name: "navegadorMapas", title: "NM.Titulo", icon: "fa-solid fa-map-location-dot",
-    button: true, order: 100, onChange: () => abrir()
-  };
 });
 
 Hooks.on("renderSceneNavigation", () => injetarBotaoNav());
