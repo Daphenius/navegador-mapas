@@ -16,6 +16,7 @@
       "TokenColocado": "Token de {nome} colocado em \"{mapa}\".",
       "ErroPreCarregar": "{nome} não conseguiu pré-carregar o mapa.",
       "ErroCarregar": "{nome} não conseguiu carregar o mapa.",
+      "SemChegada": "{nome} não confirmou a chegada em \"{mapa}\". Peça para ele apertar F5.",
       "MapaNaoExiste": "Esse mapa não existe."
     },
     "Transicao": {
@@ -103,6 +104,7 @@
       "SemSuporte": "Esta versão do Foundry não permite descarregar texturas pelo módulo.",
       "Voce": "você",
       "Liberada": "Memória liberada ({alvo}): ~{mb} em {n} navegador(es).",
+      "LiberadaSemMedida": "Memória liberada ({alvo}) em {n} navegador(es).",
       "Nada": "Nada foi descarregado ({alvo}).",
       "EmUso": "Continua carregado para quem está dentro dele: {nomes}.",
       "SemResposta": "Sem resposta de: {nomes}."

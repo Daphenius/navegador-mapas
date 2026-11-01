@@ -215,8 +215,9 @@ async function pedirTexto(titulo, rotulo, valor = "") {
 function esperarCanvas(limite = 30_000) {
   if (canvas.ready && !canvas.loading) return Promise.resolve();
   return new Promise(resolve => {
-    const tm = setTimeout(resolve, limite);
-    Hooks.once("canvasReady", () => { clearTimeout(tm); setTimeout(resolve, 300); });
+    // Se o tempo vencer, tira o gancho para ele não ficar pendurado
+    const tm = setTimeout(() => { Hooks.off("canvasReady", id); resolve(); }, limite);
+    const id = Hooks.once("canvasReady", () => { clearTimeout(tm); setTimeout(resolve, 300); });
   });
 }
 
@@ -232,13 +233,25 @@ const TL = foundry.canvas.TextureLoader;
 
 // O cache de texturas não expõe a lista de chaves; guardamos cada uma ao entrar
 // para poder excluir da limpeza tudo que não pertence ao mapa descarregado.
+// Sem esse registro não dá para descarregar com segurança (a limpeza tiraria o mapa em uso também).
 const chavesCache = new Set();
-{
+let cacheRastreado = false;
+if (typeof TL?.prototype?.setCache === "function") {
   const original = TL.prototype.setCache;
   TL.prototype.setCache = function (src, asset) {
     chavesCache.add(src);
     return original.call(this, src, asset);
   };
+  cacheRastreado = true;
+} else console.warn(`${ID} | TextureLoader#setCache não encontrado; "liberar memória" fica desativado`);
+
+// Uso de memória das texturas: não é API pública, então só usamos se existir e for um número
+function memoriaTexturas() {
+  try {
+    const v = TL.approximateTotalMemoryUsage;
+    const n = typeof v === "function" ? v.call(TL) : v;
+    return Number.isFinite(n) ? n : null;
+  } catch { return null; }
 }
 
 const EXT_MIDIA = /\.(webp|png|jpe?g|gif|svg|avif|bmp|tiff?|webm|mp4|m4v|ogv|ogg)(\?.*)?$/i;
@@ -269,7 +282,7 @@ function fontesDaCena(cena) {
 function descarregarLocal(sceneId) {
   return enfileirar(async () => {
     const loader = TL.loader;
-    if (!loader) return { bytes: 0, motivo: "sem-suporte" };
+    if (!loader || !cacheRastreado || typeof loader.expireCache !== "function") return { bytes: 0, motivo: "sem-suporte" };
     await esperarCanvas();
 
     const atual = canvas.scene;
@@ -286,7 +299,7 @@ function descarregarLocal(sceneId) {
     for (const k of chavesCache) if (!alvo.has(normalizar(k))) exclude.add(k);
 
     // CACHE_TTL negativo faz tudo que não foi excluído contar como expirado
-    const antes = TL.approximateTotalMemoryUsage;
+    const antes = memoriaTexturas();
     const ttl = TL.CACHE_TTL;
     try {
       TL.CACHE_TTL = -1;
@@ -295,20 +308,13 @@ function descarregarLocal(sceneId) {
       TL.CACHE_TTL = ttl;
     }
     for (const k of [...chavesCache]) if (alvo.has(normalizar(k))) chavesCache.delete(k);
-    return { bytes: Math.max(0, antes - TL.approximateTotalMemoryUsage) };
+    const depois = memoriaTexturas();
+    // bytes = null: o Foundry não informou quanto foi liberado
+    return { bytes: antes !== null && depois !== null ? Math.max(0, antes - depois) : null };
   });
 }
 
 const mb = bytes => `${(bytes / 1048576).toFixed(bytes >= 10485760 ? 0 : 1)} MB`;
-
-function limparBarras(atraso = 1500) {
-  setTimeout(() => {
-    if (canvas.loading) return;
-    document.querySelectorAll("#notifications > *, #notifications li").forEach(n => {
-      if (/^\s*(99|100)\s*%/.test(n.textContent ?? "")) n.remove();
-    });
-  }, atraso);
-}
 
 function precarregarLocal(sceneId) {
   return enfileirar(async () => {
@@ -316,7 +322,6 @@ function precarregarLocal(sceneId) {
     if (!cena || canvas.scene?.id === cena.id) return;
     await esperarCanvas();
     await game.scenes.preload(sceneId);
-    limparBarras();
   });
 }
 
@@ -374,7 +379,6 @@ function irPara(sceneId, { transicao = false } = {}) {
     } finally {
       esconderTransicao(tela);
     }
-    limparBarras();
     focarToken();
   });
 }
@@ -450,7 +454,10 @@ async function tocarParaTodos(cena) {
   } catch (err) { console.warn(`${ID} | não consegui tocar a playlist`, err); }
 }
 
-async function aoReceberJogador(data) {
+// senderId: quem mandou de verdade (vem do socket). Só o mestre pode comandar o jogador.
+async function aoReceberJogador(data, senderId) {
+  // (as respostas dos outros jogadores também chegam aqui; só o que vem do mestre vale)
+  if (!game.users.get(senderId)?.isGM) return;
   const status = estado => emitir({ acao: "status", userId: game.user.id, sceneId: data.sceneId, estado });
   if (data.acao === "ping") return emitir({ acao: "pong", userId: game.user.id });
   if (!data.userIds?.includes(game.user.id)) return;
@@ -491,30 +498,55 @@ async function centroDaRegiao(uuid) {
   return Number.isFinite(x0) ? { x: (x0 + x1) / 2, y: (y0 + y1) / 2 } : null;
 }
 
-// Casa livre mais perto do ponto (ponto de chegada do mapa, ou o centro), em espiral
-function vagaLivre(destino, centro = null) {
+// Casa livre mais perto do ponto (ponto de chegada do mapa, ou o centro), em espiral.
+// Usa a grade do mapa (quadrada ou hexagonal); sem grade, vale uma grade quadrada do tamanho configurado.
+// width/height: tamanho do token em casas, para ele não cair em cima de outro.
+function vagaLivre(destino, centro = null, { width = 1, height = 1 } = {}) {
   const d = destino.dimensions;
   const gs = d.size;
-  const ref = centro ?? destino.getFlag(ID, "chegada") ?? { x: d.sceneX + d.sceneWidth / 2, y: d.sceneY + d.sceneHeight / 2 };
-  const cx = Math.floor(ref.x / gs) * gs;
-  const cy = Math.floor(ref.y / gs) * gs;
+  const grid = destino.grid.isGridless ? new foundry.grid.SquareGrid({ size: gs }) : destino.grid;
+  const hex = grid.isHexagonal;
+  const chegada = destino.getFlag(ID, "chegada");
+  // A bandeirinha guarda o canto da casa; passamos para o centro dela para achar a casa certa em qualquer grade
+  const ref = centro ?? (chegada ? { x: chegada.x + grid.sizeX / 2, y: chegada.y + grid.sizeY / 2 }
+    : { x: d.sceneX + d.sceneWidth / 2, y: d.sceneY + d.sceneHeight / 2 });
+  const o0 = grid.getOffset(ref);
+  const chave = o => `${o.i},${o.j}`;
   const res = reservas.get(destino.id) ?? new Set();
   reservas.set(destino.id, res);
-  const ocupadas = new Set(destino.tokens.map(tk => `${Math.round(tk.x / gs)},${Math.round(tk.y / gs)}`));
-  const dentro = (x, y) => x >= d.sceneX && y >= d.sceneY && x + gs <= d.sceneX + d.sceneWidth && y + gs <= d.sceneY + d.sceneHeight;
+
+  // Casas que um token ocupa (na grade quadrada, todas as dele; na hexagonal, a do centro)
+  const casasDe = (x, y, w, h) => {
+    if (hex) return [chave(grid.getOffset({ x: x + w * grid.sizeX / 2, y: y + h * grid.sizeY / 2 }))];
+    const casas = [];
+    for (let i = 0; i < Math.max(1, Math.ceil(h)); i++) for (let j = 0; j < Math.max(1, Math.ceil(w)); j++)
+      casas.push(chave(grid.getOffset({ x: x + (j + 0.5) * gs, y: y + (i + 0.5) * gs })));
+    return casas;
+  };
+  const ocupadas = new Set(destino.tokens.flatMap(tk => casasDe(tk.x, tk.y, tk.width ?? 1, tk.height ?? 1)));
+  const dentro = p => p.x >= d.sceneX && p.y >= d.sceneY && p.x <= d.sceneX + d.sceneWidth && p.y <= d.sceneY + d.sceneHeight;
+  // Posição do token quando a casa é a primeira dele (na hexagonal, centrado na casa)
+  const posicao = o => {
+    if (!hex) return grid.getTopLeftPoint(o);
+    const c = grid.getCenterPoint(o);
+    return { x: c.x - width * grid.sizeX / 2, y: c.y - height * grid.sizeY / 2 };
+  };
+
   for (let raio = 0; raio <= 8; raio++) {
-    for (let dy = -raio; dy <= raio; dy++) for (let dx = -raio; dx <= raio; dx++) {
-      if (Math.max(Math.abs(dx), Math.abs(dy)) !== raio) continue;
-      const x = cx + dx * gs, y = cy + dy * gs;
-      const k = `${Math.round(x / gs)},${Math.round(y / gs)}`;
-      if (ocupadas.has(k) || res.has(k) || !dentro(x, y)) continue;
-      // Reserva a casa: vários tokens enviados juntos não caem no mesmo lugar
-      res.add(k);
-      setTimeout(() => res.delete(k), 5000);
-      return { x, y };
+    for (let di = -raio; di <= raio; di++) for (let dj = -raio; dj <= raio; dj++) {
+      if (Math.max(Math.abs(di), Math.abs(dj)) !== raio) continue;
+      const o = { i: o0.i + di, j: o0.j + dj };
+      if (!dentro(grid.getCenterPoint(o))) continue;
+      const p = posicao(o);
+      const casas = casasDe(p.x, p.y, width, height);
+      if (casas.some(k => ocupadas.has(k) || res.has(k))) continue;
+      // Reserva as casas: vários tokens enviados juntos não caem no mesmo lugar
+      for (const k of casas) { res.add(k); setTimeout(() => res.delete(k), 5000); }
+      return { x: Math.round(p.x), y: Math.round(p.y) };
     }
   }
-  return { x: cx, y: cy };
+  const p = posicao(o0);
+  return { x: Math.round(p.x), y: Math.round(p.y) };
 }
 
 // Leva um token existente para outro mapa (mantém vida, efeitos e configurações dele)
@@ -522,9 +554,7 @@ async function moverTokenPara(tokenDoc, destino, centro = null) {
   const origem = tokenDoc.parent;
   const dados = tokenDoc.toObject();
   for (const k of Object.keys(dados)) if (k.startsWith("_")) delete dados[k];
-  Object.assign(dados, vagaLivre(destino, centro));
-  delete dados.level;
-  if (destino.initialLevel) dados.level = destino.initialLevel.id;
+  Object.assign(dados, vagaLivre(destino, centro, { width: tokenDoc.width, height: tokenDoc.height }));
   const [novo] = await destino.createEmbeddedDocuments("Token", [dados]);
   if (origem && origem.id !== destino.id) await tokenDoc.delete();
   return novo;
@@ -538,8 +568,8 @@ async function moverTokenDoJogador(user, destino, origemId = user.viewedScene ??
   const antigo = origem && origem.id !== destino.id ? origem.tokens.find(tk => tk.actorId === ator.id) : null;
   if (antigo) return moverTokenPara(antigo, destino);
 
-  const dados = vagaLivre(destino);
-  if (destino.initialLevel) dados.level = destino.initialLevel.id;
+  const proto = ator.prototypeToken;
+  const dados = vagaLivre(destino, null, { width: proto?.width ?? 1, height: proto?.height ?? 1 });
   const novo = await ator.getTokenDocument(dados, { parent: destino });
   await destino.createEmbeddedDocuments("Token", [novo.toObject()]);
 }
@@ -550,7 +580,7 @@ async function esperarAnimacao(tokenDoc) {
     const nome = tokenDoc?.object?.animationName;
     const CA = foundry.canvas?.animation?.CanvasAnimation ?? globalThis.CanvasAnimation;
     if (nome && CA) await CA.getAnimation(nome)?.promise;
-  } catch {}
+  } catch (err) { console.warn(`${ID} | não consegui esperar a animação do token`, err); }
 }
 
 // Levar um token (e os jogadores donos dele) para outro mapa — usado pela API (ex.: Objetos Vivos)
@@ -618,15 +648,21 @@ function escolherPontoNoCanvas() {
 
 let marcador = null;
 function desenharChegada() {
-  try { marcador?.destroy({ children: true }); } catch {}
+  try { marcador?.destroy({ children: true }); } catch (err) { console.warn(`${ID} | não consegui apagar o marcador anterior`, err); }
   marcador = null;
   if (!game.user.isGM || !canvas.ready || !globalThis.PIXI) return;
   const p = canvas.scene?.getFlag(ID, "chegada");
   if (!p) return;
   try {
     const gs = canvas.dimensions.size;
+    const grid = canvas.grid;
     const g = new PIXI.Graphics();
-    g.lineStyle(3, 0xff8c1a, 0.9).beginFill(0xff8c1a, 0.15).drawRect(0, 0, gs, gs).endFill();
+    // Contorno da casa de chegada no formato da grade (quadrado ou hexágono); sem grade, um quadrado
+    const vertices = grid.isGridless ? [] : grid.getVertices(grid.getOffset({ x: p.x + grid.sizeX / 2, y: p.y + grid.sizeY / 2 }));
+    g.lineStyle(3, 0xff8c1a, 0.9).beginFill(0xff8c1a, 0.15);
+    if (vertices.length) g.drawPolygon(vertices.flatMap(v => [v.x - p.x, v.y - p.y]));
+    else g.drawRect(0, 0, gs, gs);
+    g.endFill();
     // bandeirinha
     g.lineStyle(3, 0xffffff, 0.95).moveTo(gs * 0.35, gs * 0.8).lineTo(gs * 0.35, gs * 0.2);
     g.lineStyle(0).beginFill(0xff8c1a, 1).drawPolygon([gs * 0.35, gs * 0.2, gs * 0.72, gs * 0.32, gs * 0.35, gs * 0.45]).endFill();
@@ -1423,7 +1459,9 @@ class NavegadorMapas extends foundry.applications.api.ApplicationV2 {
 
   lembrarRecente(sceneId) {
     if (!sceneId) return;
-    const lista = (cfg("recentes") ?? []).filter(id => id !== sceneId && game.scenes.has(id));
+    const atual = cfg("recentes") ?? [];
+    if (atual[0] === sceneId) return; // já é o mais recente: não grava de novo
+    const lista = atual.filter(id => id !== sceneId && game.scenes.has(id));
     lista.unshift(sceneId);
     game.settings.set(ID, "recentes", lista.slice(0, MAX_RECENTES + 6));
     this.atualizar({ mapas: true });
@@ -1534,6 +1572,7 @@ class NavegadorMapas extends foundry.applications.api.ApplicationV2 {
   }
 
   async enviarVarios(userIds, sceneId, opcoes = {}) {
+    if (game.scenes.has(sceneId)) this.lembrarRecente(sceneId); // uma vez só, não uma por jogador
     this.atualizar();
     await Promise.all(userIds.map(id => this.enviar(id, sceneId, opcoes)));
   }
@@ -1544,7 +1583,6 @@ class NavegadorMapas extends foundry.applications.api.ApplicationV2 {
     const cena = game.scenes.get(sceneId);
     if (!user || !cena) return;
 
-    this.lembrarRecente(cena.id);
     tocarParaTodos(cena);
     const origemId = user.viewedScene ?? user.getFlag(ID, "cena"); // antes de marcar o destino
     user.setFlag(ID, "cena", cena.id).catch(console.error);
@@ -1576,6 +1614,13 @@ class NavegadorMapas extends foundry.applications.api.ApplicationV2 {
     await token; // o token já está no mapa quando ele chega
     if (this.estados.get(user.id) !== est) return;
     emitir({ acao: "puxar", userIds: [user.id], sceneId: cena.id });
+    // Se o jogador não confirmar a chegada a tempo, o "entrando..." some e o mestre é avisado
+    this.esperar(user.id, cena.id, TEMPO_PRECARGA).then(chegou => {
+      if (chegou || this.estados.get(user.id) !== est) return;
+      this.estados.delete(user.id);
+      ui.notifications.warn(t("Aviso.SemChegada", { nome: user.name, mapa: cena.name }));
+      this.atualizar();
+    });
   }
 
   precarregarTodos(cena) {
@@ -1609,7 +1654,7 @@ class NavegadorMapas extends foundry.applications.api.ApplicationV2 {
 
     // Soma o que cada navegador liberou e mostra uma notificação só
     if (this._descarga) this._fimDescarga();
-    const d = this._descarga = { nome, bytes: 0, pessoas: 0, emUso: [], faltam: new Set([game.user.id, ...online]) };
+    const d = this._descarga = { nome, bytes: 0, semMedida: false, pessoas: 0, emUso: [], faltam: new Set([game.user.id, ...online]) };
     d.t = setTimeout(() => this._fimDescarga(d), 8000);
 
     if (sceneId) this.precarregados.delete(sceneId);
@@ -1627,7 +1672,11 @@ class NavegadorMapas extends foundry.applications.api.ApplicationV2 {
     if (!d || !d.faltam.has(data.userId)) return;
     d.faltam.delete(data.userId);
     if (data.motivo === "em-uso") d.emUso.push(data.userId === game.user.id ? t("Memoria.Voce") : (game.users.get(data.userId)?.name ?? "?"));
-    else if (data.motivo !== "sem-suporte") { d.bytes += data.bytes ?? 0; d.pessoas++; }
+    else if (data.motivo !== "sem-suporte") {
+      if (Number.isFinite(data.bytes)) d.bytes += data.bytes;
+      else d.semMedida = true; // algum navegador não soube dizer quanto liberou
+      d.pessoas++;
+    }
     if (!d.faltam.size) this._fimDescarga(d);
   }
 
@@ -1636,9 +1685,9 @@ class NavegadorMapas extends foundry.applications.api.ApplicationV2 {
     d.fim = true;
     clearTimeout(d.t);
     if (this._descarga === d) this._descarga = null;
-    let msg = d.pessoas
-      ? t("Memoria.Liberada", { alvo: d.nome, mb: mb(d.bytes), n: d.pessoas })
-      : t("Memoria.Nada", { alvo: d.nome });
+    let msg = !d.pessoas ? t("Memoria.Nada", { alvo: d.nome })
+      : d.semMedida ? t("Memoria.LiberadaSemMedida", { alvo: d.nome, n: d.pessoas })
+      : t("Memoria.Liberada", { alvo: d.nome, mb: mb(d.bytes), n: d.pessoas });
     if (d.emUso.length) msg += ` ${t("Memoria.EmUso", { nomes: d.emUso.join(", ") })}`;
     if (d.faltam.size) msg += ` ${t("Memoria.SemResposta", { nomes: [...d.faltam].map(id => game.users.get(id)?.name).join(", ") })}`;
     ui.notifications.info(msg);
@@ -1665,10 +1714,12 @@ class NavegadorMapas extends foundry.applications.api.ApplicationV2 {
     }
     if (data.estado === "chegou" && est) {
       est.estado = "chegou";
+      this.esperas.get(`${data.userId}:${data.sceneId}`)?.(true);
       setTimeout(() => { if (this.estados.get(data.userId) === est) { this.estados.delete(data.userId); this.atualizar(); } }, 1500);
     }
     if (data.estado === "erro") {
       this.estados.delete(data.userId);
+      this.esperas.get(`${data.userId}:${data.sceneId}`)?.(false);
       ui.notifications.error(t("Aviso.ErroCarregar", { nome: user?.name }));
     }
     this.atualizar();
@@ -1796,6 +1847,13 @@ Hooks.on("updateScene", (cena, mudancas) => {
 
 // Mapa excluído: quem estava "marcado" para entrar nele perde a marcação
 Hooks.on("deleteScene", async cena => {
+  // Em todos os navegadores: solta o que ficou guardado sobre esse mapa
+  reservas.delete(cena.id);
+  try {
+    const emUso = new Set([...fontesDaCena(canvas.scene)].map(normalizar));
+    const fontes = new Set([...fontesDaCena(cena)].map(normalizar));
+    for (const k of [...chavesCache]) { const n = normalizar(k); if (fontes.has(n) && !emUso.has(n)) chavesCache.delete(k); }
+  } catch (err) { console.warn(`${ID} | não consegui limpar o registro de texturas do mapa excluído`, err); }
   if (!souMestreAtivo()) return;
   app?.precarregados.delete(cena.id);
   for (const u of game.users.filter(u => u.getFlag(ID, "cena") === cena.id)) await u.unsetFlag(ID, "cena").catch(console.error);
@@ -1810,14 +1868,14 @@ Hooks.on("userConnected", (user, conectado) => {
 // Opção: descarregar o mapa anterior ao trocar de mapa
 let cenaAnterior = null;
 Hooks.on("canvasReady", () => {
-  limparBarras();
   gravarLugar();
   desenharChegada();
   atualizarMusicaLocal();
   if (game.user.isGM) app?.lembrarRecente(canvas.scene?.id);
   // Se abriu direto no último mapa, avisa os outros onde o jogador está
   else if (canvas.scene && game.user.viewedScene !== canvas.scene.id) {
-    try { game.user.broadcastActivity?.({ sceneId: canvas.scene.id }); } catch {}
+    try { game.user.broadcastActivity?.({ sceneId: canvas.scene.id }); }
+    catch (err) { console.warn(`${ID} | não consegui avisar em que mapa o jogador está`, err); }
   }
   const anterior = cenaAnterior;
   cenaAnterior = canvas.scene?.id ?? null;
@@ -1832,21 +1890,38 @@ Hooks.on("canvasReady", () => {
 Hooks.once("ready", () => {
   if (game.user.isGM) app = new NavegadorMapas(); // existe mesmo fechada: recebe respostas e portais
 
-  game.socket.on(SOCKET, data => {
+  // senderId é quem mandou de verdade (vem do próprio socket); o userId dentro dos dados não vale como prova
+  game.socket.on(SOCKET, async (data, senderId) => {
     if (!data?.acao) return;
+    const remetente = game.users.get(senderId);
+    if (!remetente) return;
     if (game.user.isGM) {
       if (data.acao === "gravar") {
-        if (souMestreAtivo() && game.scenes.has(data.sceneId))
-          game.users.get(data.userId)?.setFlag(ID, "cena", data.sceneId).catch(console.error);
+        // Só grava o "último mapa" do próprio remetente
+        if (souMestreAtivo() && game.scenes.has(data.sceneId)) remetente.setFlag(ID, "cena", data.sceneId).catch(console.error);
         return;
       }
-      if (data.acao === "portal") { if (souMestreAtivo()) executarPortal(data); return; }
+      if (data.acao === "portal") {
+        if (!souMestreAtivo()) return;
+        // Jogador só pode levar um token que é dele
+        if (!remetente.isGM) {
+          const tk = typeof data.tokenUuid === "string" ? await fromUuid(data.tokenUuid).catch(() => null) : null;
+          if (!tk?.actor?.testUserPermission(remetente, "OWNER"))
+            return console.warn(`${ID} | portal ignorado: ${remetente.name} não é dono do token ${data.tokenUuid}`);
+        }
+        executarPortal(data);
+        return;
+      }
       if (data.acao === "pedir-envio") {
-        if (souMestreAtivo() && game.scenes.has(data.sceneId)) app.enviarVarios(data.userIds ?? [], data.sceneId);
+        // Jogador só pede para si mesmo; o mestre pode pedir para qualquer um
+        const ids = remetente.isGM ? (data.userIds ?? []) : [remetente.id];
+        if (souMestreAtivo() && game.scenes.has(data.sceneId)) app.enviarVarios(ids, data.sceneId);
         return;
       }
+      // status/pong só contam para quem realmente mandou
+      if (data.userId !== senderId) return console.warn(`${ID} | "${data.acao}" ignorado: usuário declarado diferente do remetente`);
       app?.aoSocket(data);
-    } else aoReceberJogador(data);
+    } else aoReceberJogador(data, senderId);
   });
 
   // API para macros e outros módulos (ex.: Monk's Active Tiles → "Executar macro")
@@ -1878,6 +1953,5 @@ Hooks.once("ready", () => {
     if (fixa && game.scenes.get(fixa)) irPara(fixa).finally(liberar);
     else esperarCanvas().then(liberar);
   }
-  limparBarras(3000);
 });
 

@@ -16,6 +16,7 @@
       "TokenColocado": "{nome}'s token placed on \"{mapa}\".",
       "ErroPreCarregar": "{nome} could not preload the map.",
       "ErroCarregar": "{nome} could not load the map.",
+      "SemChegada": "{nome} did not confirm arriving on \"{mapa}\". Ask them to press F5.",
       "MapaNaoExiste": "That map does not exist."
     },
     "Transicao": {
@@ -103,6 +104,7 @@
       "SemSuporte": "This Foundry version does not let the module unload textures.",
       "Voce": "you",
       "Liberada": "Memory freed ({alvo}): ~{mb} across {n} browser(s).",
+      "LiberadaSemMedida": "Memory freed ({alvo}) in {n} browser(s).",
       "Nada": "Nothing was unloaded ({alvo}).",
       "EmUso": "Still loaded for whoever is on it: {nomes}.",
       "SemResposta": "No answer from: {nomes}."

@@ -1,5 +1,24 @@
 # Changelog
 
+## v4.0.2
+
+### Segurança
+- As mensagens entre jogadores e mestre agora são conferidas pelo remetente real. Um jogador não consegue mais mandar outro jogador para um mapa, mudar o "último mapa" de outra pessoa, usar o portal com um token que não é dele nem se passar por outro jogador nas respostas. Só o mestre consegue puxar um jogador para um mapa.
+
+### Correções
+- **Grade hexagonal**: o ponto de chegada e as casas ao redor agora seguem a grade do mapa (quadrada ou hexagonal), e tokens grandes (2x2 etc.) não caem em cima de outros. A bandeirinha do ponto de chegada desenha o formato da casa.
+- Se um jogador não confirmar que chegou ao mapa em até 2 minutos, o "entrando em..." dele some e o mestre recebe um aviso, em vez de ficar girando para sempre.
+- "Liberar memória" não mostra mais "NaN MB": quando o Foundry não informa quantos MB foram liberados, o aviso diz só em quantos navegadores a limpeza foi feita.
+- O módulo deixou de apagar notificações do Foundry por conta própria (as barras de "100%").
+- Enviar um grupo grava a lista de mapas recentes uma vez só, em vez de uma vez por jogador.
+- Ao excluir um mapa, o módulo solta o que guardava sobre ele (casas reservadas e registro de texturas).
+- Erros que antes eram engolidos em silêncio agora aparecem no console (F12) com uma explicação.
+- Tirado código que dependia de "níveis" de mapa, que não existem no Foundry.
+
+### Outros
+- README explica que ativar um mapa apaga o "último mapa" dos jogadores offline, e como funciona a cópia das faixas de música para jogadores sem acesso à playlist.
+- Automação de release reescrita no formato explícito, `.gitignore` novo e link do README no module.json.
+
 ## v4.0.1
 
 - Saiu o botão do Navegador da barra de ferramentas de tokens (à esquerda). O Navegador continua abrindo pelo botão ao lado da navegação de cenas e pelo atalho **Shift+M**.

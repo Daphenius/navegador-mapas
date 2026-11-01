@@ -50,23 +50,25 @@ Só o mestre usa o Navegador. Abra de qualquer um destes jeitos:
 - **Pré-carregamento**: o mapa carrega no navegador do jogador antes da troca.
 - **Levar o token junto**: o token do personagem vai para o **ponto de chegada** do mapa (veja abaixo), e vários tokens enviados juntos não se empilham.
 - **Tela de transição**: o jogador vê o nome do mapa (o nome que os jogadores enxergam) sobre a miniatura desfocada enquanto o mapa carrega.
-- **O jogador volta ao último mapa** em que estava ao recarregar (F5), sem carregar o mapa ativo antes.
+- **O jogador volta ao último mapa** em que estava ao recarregar (F5), sem carregar o mapa ativo antes. Atenção: **ativar um mapa** (menu ⋮ → "Ativar mapa") vale para a mesa toda e apaga o "último mapa" guardado dos jogadores que estão offline — quando eles conectarem, entram no mapa ativo, não no que estavam antes.
 - **Aviso de jogador sem token**: aparece quando um jogador está num mapa sem o token dele, com um botão para colocar o token ali.
 - Indicador de quem está em cada mapa, inclusive dentro de pastas fechadas.
 
 ### Ponto de chegada
-No menu ⋮ do mapa, use **Definir ponto de chegada** e clique no lugar. Os tokens chegam ali e nas casas ao redor. Só o mestre vê a bandeirinha laranja que marca o ponto.
+No menu ⋮ do mapa, use **Definir ponto de chegada** e clique no lugar. Os tokens chegam ali e nas casas ao redor, respeitando a grade do mapa (quadrada ou hexagonal) e o tamanho de cada token. Só o mestre vê a bandeirinha laranja que marca o ponto.
 
 ### Música por mapa
 Em **Nota, etiquetas e música**, escolha uma playlist nativa do Foundry para o mapa:
 - **Só quem entrar no mapa**: toca no navegador de quem está naquele mapa e para quando a pessoa sai.
 - **Todos**: o mestre toca a playlist para a mesa inteira.
 
+A lista de faixas é lida da playlist na hora de tocar. Para jogadores que **não têm permissão de ver a playlist**, o módulo usa uma cópia das faixas guardada no mapa quando você salvou os detalhes: se mudar as faixas depois, abra **Nota, etiquetas e música** de novo e salve, para a cópia atualizar.
+
 ### Objetos interativos e gatilhos
 Os gatilhos e portais que existiam até a v3.3 saíram deste módulo. Agora ficam no módulo **[Objetos Vivos](https://github.com/Daphenius/objetos-vivos)**, que transforma tiles, portas e paredes em objetos com ações. Com o Navegador ativo, o Objetos Vivos ganha a ação "Levar a outro mapa".
 
 ### Memória
-- **Liberar memória**: tira da memória os mapas em que ninguém está, no mestre e nos jogadores.
+- **Liberar memória**: tira da memória os mapas em que ninguém está, no mestre e nos jogadores. O aviso mostra quantos MB foram liberados quando o Foundry informa esse número; se não informar, mostra só em quantos navegadores a limpeza foi feita.
 - Opção para descarregar automaticamente o mapa anterior ao trocar.
 
 ## Configurações do módulo
