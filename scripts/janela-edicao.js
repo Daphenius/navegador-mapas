@@ -46,7 +46,6 @@ export const Edicao = Base => class extends Base {
       ["fa-bullseye", t("Menu.Ativar"), () => cena.activate()],
       ["fa-users", t("Menu.PuxarTodos"), () => this.puxarTodos(cena)],
       ["fa-download", t("Menu.Precarregar"), () => this.precarregarTodos(cena)],
-      ["fa-eraser", t("Menu.Descarregar"), () => this.descarregar(cena)],
       "-",
       ["fa-star", t(fav ? "Mapa.Desfavoritar" : "Mapa.Favoritar"), () => this.alternarFavorito(cena.id)],
       ["fa-note-sticky", t("Menu.Detalhes"), () => this.editarDetalhes(cena)],

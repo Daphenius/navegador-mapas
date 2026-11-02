@@ -1,5 +1,13 @@
 # Changelog
 
+## v4.3.0
+
+### Removido: "Liberar memória"
+- Saíram o botão de vassoura da janela, a opção "Descarregar da memória" do menu do mapa e a configuração "Descarregar automaticamente o mapa anterior".
+- **Por quê:** para tirar da memória só as texturas de um mapa, o módulo precisava mexer em partes internas do Foundry: trocava uma função do carregador de texturas para anotar o que entrava, mudava o prazo de validade do cache e lia um contador de memória que não é oficial. Isso pode quebrar sem aviso em qualquer atualização do Foundry. A parte oficial do Foundry só sabe descartar o que está sem uso há algum tempo, sem escolher o mapa, e é exatamente o que o Foundry já faz sozinho. Um botão que só repetisse isso não valeria a pena.
+- O **pré-carregamento** continua igual: o mapa carrega no navegador do jogador antes da troca.
+- Se você tinha marcado "Descarregar automaticamente o mapa anterior", não precisa fazer nada: a opção some das configurações.
+
 ## v4.2.0
 
 ### Por dentro

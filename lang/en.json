@@ -98,23 +98,11 @@
     "Dica": {
       "Geral": "Drag a player or a group onto a map (or click it, then click the map). Ctrl selects several; Esc clears. Drag maps onto others to reorder, or onto folders to move them. Double-click a map to view it."
     },
-    "Memoria": {
-      "LiberarDica": "Free memory: unload every map nobody is on",
-      "SemNinguem": "maps with nobody on them",
-      "SemSuporte": "This Foundry version does not let the module unload textures.",
-      "Voce": "you",
-      "Liberada": "Memory freed ({alvo}): ~{mb} across {n} browser(s).",
-      "LiberadaSemMedida": "Memory freed ({alvo}) in {n} browser(s).",
-      "Nada": "Nothing was unloaded ({alvo}).",
-      "EmUso": "Still loaded for whoever is on it: {nomes}.",
-      "SemResposta": "No answer from: {nomes}."
-    },
     "Menu": {
       "Ver": "View (only me)",
       "Ativar": "Activate map (everyone goes)",
       "PuxarTodos": "Pull all players here",
       "Precarregar": "Preload for players",
-      "Descarregar": "Unload from memory (everyone)",
       "Detalhes": "Note, tags and music",
       "DefinirChegada": "Set arrival point",
       "MudarChegada": "Change arrival point",
@@ -178,10 +166,6 @@
         "Fundo": "Name over a blurred thumbnail",
         "SoNome": "Name only",
         "Off": "Off"
-      },
-      "LiberarAnterior": {
-        "Nome": "Automatically unload the previous map",
-        "Dica": "When changing maps, the map the person left is removed from memory (GM and players). Saves RAM, but going back loads everything again."
       },
       "OcultarNavMestre": {
         "Nome": "Hide the scene navigation bar for the GM",

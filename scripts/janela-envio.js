@@ -1,7 +1,6 @@
-// Navegador de Mundos — janela: enviar jogadores, pré-carregar, liberar memória e respostas dos jogadores
+// Navegador de Mundos — janela: enviar jogadores, pré-carregar e respostas dos jogadores
 
 import { ID, TEMPO_PRECARGA, t, cfg, emitir } from "./nucleo.js";
-import { descarregarLocal, mb } from "./texturas.js";
 import { moverTokenDoJogador, tocarParaTodos } from "./viagem.js";
 
 export const Envio = Base => class extends Base {
@@ -111,60 +110,11 @@ export const Envio = Base => class extends Base {
     ui.notifications.info(t("Aviso.TokenColocado", { nome: user.name, mapa: cena.name }));
   }
 
-  // Descarrega um mapa (cena = null: todos os fora de uso) no mestre e nos jogadores.
-  // Quem está dentro do mapa não é afetado.
-  async descarregar(cena) {
-    const sceneId = cena?.id ?? null;
-    const nome = cena ? `"${cena.name}"` : t("Memoria.SemNinguem");
-    const online = game.users.filter(u => !u.isGM && u.active).map(u => u.id);
-
-    // Soma o que cada navegador liberou e mostra uma notificação só
-    if (this._descarga) this._fimDescarga();
-    const d = this._descarga = { nome, bytes: 0, semMedida: false, pessoas: 0, emUso: [], faltam: new Set([game.user.id, ...online]) };
-    d.t = setTimeout(() => this._fimDescarga(d), 8000);
-
-    if (sceneId) this.precarregados.delete(sceneId);
-    else for (const id of [...this.precarregados.keys()]) if (id !== canvas.scene?.id) this.precarregados.delete(id);
-
-    if (online.length) emitir({ acao: "descarregar", userIds: online, sceneId });
-
-    const r = await descarregarLocal(sceneId);
-    if (r.motivo === "sem-suporte") ui.notifications.warn(t("Memoria.SemSuporte"));
-    this._aoDescarregado({ userId: game.user.id, bytes: r.bytes, motivo: r.motivo }, d);
-    this.atualizar("lista");
-  }
-
-  _aoDescarregado(data, d = this._descarga) {
-    if (!d || !d.faltam.has(data.userId)) return;
-    d.faltam.delete(data.userId);
-    if (data.motivo === "em-uso") d.emUso.push(data.userId === game.user.id ? t("Memoria.Voce") : (game.users.get(data.userId)?.name ?? "?"));
-    else if (data.motivo !== "sem-suporte") {
-      if (Number.isFinite(data.bytes)) d.bytes += data.bytes;
-      else d.semMedida = true; // algum navegador não soube dizer quanto liberou
-      d.pessoas++;
-    }
-    if (!d.faltam.size) this._fimDescarga(d);
-  }
-
-  _fimDescarga(d = this._descarga) {
-    if (!d || d.fim) return;
-    d.fim = true;
-    clearTimeout(d.t);
-    if (this._descarga === d) this._descarga = null;
-    let msg = !d.pessoas ? t("Memoria.Nada", { alvo: d.nome })
-      : d.semMedida ? t("Memoria.LiberadaSemMedida", { alvo: d.nome, n: d.pessoas })
-      : t("Memoria.Liberada", { alvo: d.nome, mb: mb(d.bytes), n: d.pessoas });
-    if (d.emUso.length) msg += ` ${t("Memoria.EmUso", { nomes: d.emUso.join(", ") })}`;
-    if (d.faltam.size) msg += ` ${t("Memoria.SemResposta", { nomes: [...d.faltam].map(id => game.users.get(id)?.name).join(", ") })}`;
-    ui.notifications.info(msg);
-  }
-
   aoSocket(data) {
     if (!data?.userId) return;
     this.receptores.add(data.userId);
     if (data.acao === "pong") return this.atualizar("jogadores");
     if (data.acao !== "status") return;
-    if (data.estado === "descarregado") return this._aoDescarregado(data);
 
     const user = game.users.get(data.userId);
     const est = this.estados.get(data.userId);

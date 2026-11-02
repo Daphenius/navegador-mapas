@@ -68,14 +68,12 @@ A lista de faixas é lida da playlist na hora de tocar. Para jogadores que **nã
 Os gatilhos e portais que existiam até a v3.3 saíram deste módulo. Agora ficam no módulo **[Objetos Vivos](https://github.com/Daphenius/objetos-vivos)**, que transforma tiles, portas e paredes em objetos com ações. Com o Navegador ativo, o Objetos Vivos ganha a ação "Levar a outro mapa".
 
 ### Memória
-- **Liberar memória**: tira da memória os mapas em que ninguém está, no mestre e nos jogadores. O aviso mostra quantos MB foram liberados quando o Foundry informa esse número; se não informar, mostra só em quantos navegadores a limpeza foi feita.
-- Opção para descarregar automaticamente o mapa anterior ao trocar.
+O Navegador **pré-carrega** o mapa no navegador do jogador antes da troca. Quem tira da memória os mapas que ficaram sem uso é o próprio Foundry, sozinho, como em qualquer mundo.
 
 ## Configurações do módulo
 Em **Configurar Definições → Navegador de Mundos**:
 - jogadores voltam ao último mapa;
 - tela de transição (com fundo, só o nome ou desligada);
-- descarregar automaticamente o mapa anterior;
 - ocultar a barra de navegação de cenas para o mestre e/ou para os jogadores;
 - ocultar a aba Cenas da barra lateral.
 

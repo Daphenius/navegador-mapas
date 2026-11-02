@@ -5,7 +5,7 @@
 //
 // Este arquivo só liga as peças: init, ready e ganchos do Foundry.
 //   nucleo.js        constantes, configurações e utilitários
-//   texturas.js      pré-carregar mapas e liberar memória
+//   texturas.js      pré-carregar mapas
 //   viagem.js        troca de mapa, transição, música, casas livres, portais, ponto de chegada
 //   socket.js        canal entre mestre e jogadores
 //   janela*.js       janela do mestre (desenho, edição, envio)
@@ -13,7 +13,6 @@
 //   api.js           API para macros e outros módulos
 
 import { ID, cfg, souMestreAtivo, esperarCanvas, estado, registrarConfig } from "./nucleo.js";
-import { descarregarLocal, esquecerTexturasDe } from "./texturas.js";
 import {
   irPara, gravarLugar, liberarGravacao, desenharChegada, atualizarMusicaLocal,
   limparFixasOffline, interceptarPrimeiroDesenho, reservas
@@ -43,7 +42,6 @@ Hooks.on("updateScene", (cena, mudancas) => {
 Hooks.on("deleteScene", async cena => {
   // Em todos os navegadores: solta o que ficou guardado sobre esse mapa
   reservas.delete(cena.id);
-  esquecerTexturasDe(cena);
   if (!souMestreAtivo()) return;
   estado.app?.precarregados.delete(cena.id);
   for (const u of game.users.filter(u => u.getFlag(ID, "cena") === cena.id)) await u.unsetFlag(ID, "cena").catch(console.error);
@@ -56,8 +54,6 @@ Hooks.on("userConnected", (user, conectado) => {
   if (conectado) setTimeout(() => app.rendered && app.ping(), 4000);
 });
 
-// Opção: descarregar o mapa anterior ao trocar de mapa
-let cenaAnterior = null;
 Hooks.on("canvasReady", () => {
   gravarLugar();
   desenharChegada();
@@ -67,14 +63,6 @@ Hooks.on("canvasReady", () => {
   else if (canvas.scene && game.user.viewedScene !== canvas.scene.id) {
     try { game.user.broadcastActivity({ sceneId: canvas.scene.id }); }
     catch (err) { console.warn(`${ID} | não consegui avisar em que mapa o jogador está`, err); }
-  }
-  const anterior = cenaAnterior;
-  cenaAnterior = canvas.scene?.id ?? null;
-  if (anterior && anterior !== cenaAnterior && cfg("liberarAnterior")) {
-    setTimeout(() => {
-      // ...a menos que a pessoa já tenha voltado para ele
-      if (canvas.scene?.id !== anterior) descarregarLocal(anterior).catch(err => console.warn(`${ID} | falha ao descarregar o mapa anterior`, err));
-    }, 3000);
   }
 });
 

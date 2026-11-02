@@ -2,7 +2,7 @@
 // (o 2º argumento do callback; o userId dentro dos dados não vale como prova)
 
 import { ID, SOCKET, emitir, souMestreAtivo, estado } from "./nucleo.js";
-import { precarregarLocal, descarregarLocal } from "./texturas.js";
+import { precarregarLocal } from "./texturas.js";
 import { irPara, executarPortal } from "./viagem.js";
 
 // senderId: quem mandou de verdade (vem do socket). Só o mestre pode comandar o jogador.
@@ -20,12 +20,6 @@ export async function aoReceberJogador(data, senderId) {
   if (data.acao === "puxar") {
     try { await irPara(data.sceneId, { transicao: true }); status("chegou"); }
     catch (err) { console.error(err); status("erro"); }
-  }
-  if (data.acao === "descarregar") {
-    try {
-      const r = await descarregarLocal(data.sceneId);
-      emitir({ acao: "status", userId: game.user.id, sceneId: data.sceneId, estado: "descarregado", bytes: r.bytes, motivo: r.motivo });
-    } catch (err) { console.error(err); }
   }
 }
 

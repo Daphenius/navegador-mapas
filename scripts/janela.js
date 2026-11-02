@@ -307,7 +307,6 @@ export class NavegadorMapas extends Envio(Edicao(HandlebarsApplicationMixin(Appl
       else if (acao === "salvar-grupo") this.salvarGrupo();
       else if (acao === "limpar-etq") { this.filtroEtq.clear(); this.atualizar("lista"); }
       else if (acao === "colocar-token") this.colocarToken(alvoAcao.dataset.user);
-      else if (acao === "liberar") this.descarregar(null);
       else if (acao === "recolher") {
         game.settings.set(ID, "pastasFechadas", game.folders.filter(p => p.type === "Scene").map(p => p.id));
         this.atualizar("lista");

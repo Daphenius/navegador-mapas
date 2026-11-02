@@ -71,10 +71,6 @@ export function registrarConfig({ aoMudarNav, aoAtalho }) {
     scope: "world", config: true, type: String, default: "fundo",
     choices: { fundo: "NM.Config.Transicao.Fundo", nome: "NM.Config.Transicao.SoNome", off: "NM.Config.Transicao.Off" }
   });
-  reg("liberarAnterior", {
-    name: "NM.Config.LiberarAnterior.Nome", hint: "NM.Config.LiberarAnterior.Dica",
-    scope: "world", config: true, type: Boolean, default: false
-  });
   reg("ocultarNavMestre", {
     name: "NM.Config.OcultarNavMestre.Nome", hint: "NM.Config.OcultarNavMestre.Dica",
     scope: "world", config: true, type: Boolean, default: false, onChange: aoMudarNav

@@ -98,23 +98,11 @@
     "Dica": {
       "Geral": "Arraste um jogador ou um grupo até um mapa (ou clique nele e depois no mapa). Ctrl seleciona vários; Esc limpa. Arraste mapas sobre outros para mudar a ordem, ou sobre pastas para mudar de pasta. Clique duplo no mapa para visualizá-lo."
     },
-    "Memoria": {
-      "LiberarDica": "Liberar memória: descarrega de todos os mapas em que ninguém está",
-      "SemNinguem": "mapas sem ninguém dentro",
-      "SemSuporte": "Esta versão do Foundry não permite descarregar texturas pelo módulo.",
-      "Voce": "você",
-      "Liberada": "Memória liberada ({alvo}): ~{mb} em {n} navegador(es).",
-      "LiberadaSemMedida": "Memória liberada ({alvo}) em {n} navegador(es).",
-      "Nada": "Nada foi descarregado ({alvo}).",
-      "EmUso": "Continua carregado para quem está dentro dele: {nomes}.",
-      "SemResposta": "Sem resposta de: {nomes}."
-    },
     "Menu": {
       "Ver": "Ver (só eu vou)",
       "Ativar": "Ativar mapa (todos vão)",
       "PuxarTodos": "Puxar todos os jogadores para cá",
       "Precarregar": "Pré-carregar para os jogadores",
-      "Descarregar": "Descarregar da memória (todos)",
       "Detalhes": "Nota, etiquetas e música",
       "DefinirChegada": "Definir ponto de chegada",
       "MudarChegada": "Mudar ponto de chegada",
@@ -178,10 +166,6 @@
         "Fundo": "Nome com a miniatura desfocada ao fundo",
         "SoNome": "Só o nome",
         "Off": "Desligada"
-      },
-      "LiberarAnterior": {
-        "Nome": "Descarregar automaticamente o mapa anterior",
-        "Dica": "Ao trocar de mapa, o mapa de onde a pessoa saiu é tirado da memória (mestre e jogadores). Economiza RAM, mas voltar para ele carrega tudo de novo."
       },
       "OcultarNavMestre": {
         "Nome": "Ocultar a barra de navegação de mapas para o mestre",
