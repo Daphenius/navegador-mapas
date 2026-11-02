@@ -274,3 +274,47 @@ test("casasDaArea: 1, 7 e 19 hexágonos para áreas 0, 1 e 2", () => {
     assert.equal(viagem.casasDaArea(B).length, total);
   }
 });
+
+// ---------- Segunda revisão (2/11/2026)
+test("dois envios rápidos para destinos diferentes: um token só, no último destino", async () => {
+  const A = criarCena("A"), B = criarCena("B"), C = criarCena("C"), ator = criarAtor("x");
+  adicionarToken(A, { actorId: "x" });
+  preparar({ cenas: [A, B, C] });
+  const u = jogador("u1", ator, "A");
+  // o segundo envio sai antes do primeiro terminar, ainda achando que a origem é A
+  const r = await Promise.allSettled([viagem.moverTokenDoJogador(u, B, "A"), viagem.moverTokenDoJogador(u, C, "A")]);
+  assert.ok(r.every(x => x.status === "fulfilled"));
+  assert.equal(deAtor(A, ator) + deAtor(B, ator) + deAtor(C, ator), 1, "um token do personagem no total");
+  assert.equal(deAtor(C, ator), 1, "no destino do último envio");
+});
+
+test("dois envios rápidos, o primeiro já em andamento: o segundo leva o token de onde ele está agora", async () => {
+  const A = criarCena("A"), B = criarCena("B"), C = criarCena("C"), ator = criarAtor("y");
+  adicionarToken(A, { actorId: "y" });
+  preparar({ cenas: [A, B, C] });
+  const u = jogador("u1", ator, "A");
+  const primeiro = viagem.moverTokenDoJogador(u, B, "A");
+  await new Promise(r => setTimeout(r, 0)); // o primeiro já começou a criar em B
+  await Promise.all([primeiro, viagem.moverTokenDoJogador(u, C, "A")]);
+  assert.equal(deAtor(A, ator) + deAtor(B, ator) + deAtor(C, ator), 1);
+  assert.equal(deAtor(C, ator), 1);
+});
+
+test("token maior que o mapa: a transferência para, o original fica e o mestre é avisado", async () => {
+  const A = criarCena("A"), B = criarCena("B", { largura: 200, altura: 200 }), ator = criarAtor("g", { width: 3, height: 3 });
+  adicionarToken(A, { actorId: "g", width: 3, height: 3 });
+  preparar({ cenas: [A, B] });
+  const err = await viagem.moverTokenDoJogador(jogador("u1", ator, "A"), B, "A").catch(e => e);
+  assert.equal(err?.avisado, true);
+  assert.equal(deAtor(A, ator), 1, "original preservado");
+  assert.equal(B.tokens.contents.length, 0, "nada criado no mapa pequeno");
+  assert.ok(avisos.some(a => a.tipo === "error" && a.msg.includes("Mapa B")));
+});
+
+test("token novo (sem token antigo) maior que o mapa: não é criado", async () => {
+  const B = criarCena("B", { largura: 200, altura: 200 }), ator = criarAtor("h", { width: 3, height: 3 });
+  preparar({ cenas: [B] });
+  const err = await viagem.moverTokenDoJogador(jogador("u1", ator, null), B, null).catch(e => e);
+  assert.equal(err?.avisado, true);
+  assert.equal(B.tokens.contents.length, 0);
+});

@@ -21,7 +21,8 @@
       "TransferenciaDesfeita": "Couldn't remove {token} from \"{origem}\". The copy on \"{destino}\" was undone, and the token is still on \"{origem}\".",
       "TokenDuplicado": "{token} is now on two maps: \"{origem}\" and \"{destino}\". Couldn't undo the copy; delete one of them by hand.",
       "SemCasaLivre": "Found no free space near the arrival point on \"{mapa}\". The token was placed at the arrival point, possibly on top of another one.",
-      "AreaCheia": "Arrival area of \"{mapa}\" is full: the token was placed on the nearest free space, outside the area."
+      "AreaCheia": "Arrival area of \"{mapa}\" is full: the token was placed on the nearest free space, outside the area.",
+      "TokenNaoCabe": "{token} is larger than the map \"{mapa}\" and doesn't fit. The token was not moved and stays where it was."
     },
     "Transicao": {
       "Carregando": "Loading"

@@ -259,7 +259,7 @@ export function casasDaArea(cena) {
 // a casa livre mais próxima fora dela, e o mestre é avisado.
 // Usa a grade do mapa (quadrada ou hexagonal); sem grade, vale uma grade quadrada do tamanho configurado.
 // width/height: tamanho do token em casas, para ele não cair em cima de outro.
-function vagaLivre(destino, centro = null, { width = 1, height = 1 } = {}) {
+function vagaLivre(destino, centro = null, { width = 1, height = 1, nome = "" } = {}) {
   const d = destino.dimensions;
   const grid = gradeDe(destino);
   const hex = grid.isHexagonal;
@@ -284,6 +284,11 @@ function vagaLivre(destino, centro = null, { width = 1, height = 1 } = {}) {
   };
   const ocupadas = new Set(destino.tokens.contents.flatMap(tk => casasDe(tk.x, tk.y, tk.width ?? 1, tk.height ?? 1)));
   const larg = Math.max(1, width) * grid.sizeX, alt = Math.max(1, height) * grid.sizeY;
+  // Token maior que o próprio mapa: não há onde pôr. Para antes de criar qualquer coisa (o original fica).
+  if (larg > d.sceneWidth + 1 || alt > d.sceneHeight + 1) {
+    ui.notifications.error(t("Aviso.TokenNaoCabe", { token: nome, mapa: destino.name }));
+    throw Object.assign(new Error(`${nome} não cabe em "${destino.name}"`), { avisado: true });
+  }
   // O token inteiro (não só o centro da casa) precisa caber dentro da área do mapa
   const cabe = p => p.x >= d.sceneX && p.y >= d.sceneY
     && p.x + larg <= d.sceneX + d.sceneWidth + 1 && p.y + alt <= d.sceneY + d.sceneHeight + 1;
@@ -324,7 +329,7 @@ async function moverTokenPara(tokenDoc, destino, centro = null) {
   const origem = tokenDoc.parent;
   const dados = tokenDoc.toObject();
   for (const k of Object.keys(dados)) if (k.startsWith("_")) delete dados[k];
-  Object.assign(dados, vagaLivre(destino, centro, { width: tokenDoc.width, height: tokenDoc.height }));
+  Object.assign(dados, vagaLivre(destino, centro, { width: tokenDoc.width, height: tokenDoc.height, nome: tokenDoc.name }));
   const [novo] = await destino.createEmbeddedDocuments("Token", [dados]);
   if (!origem || origem.id === destino.id) return novo;
   try {
@@ -345,29 +350,52 @@ async function moverTokenPara(tokenDoc, destino, centro = null) {
 }
 
 // Token do personagem do jogador no mapa de destino
-// Uma transferência por personagem de cada vez: dois jogadores com o mesmo personagem
-// enviados juntos esperam um pelo outro, e o segundo encontra o token já no destino.
-const filaPorAtor = new Map(); // actorId -> promessa da transferência em andamento
+// Uma transferência por personagem de cada vez, e só a mais nova vale:
+// - dois jogadores com o mesmo personagem enviados juntos: o segundo encontra o token já no destino;
+// - dois envios rápidos para mapas diferentes: o que ainda esperava na fila é substituído pelo mais
+//   novo, e quem roda procura o token onde o módulo o deixou por último (não na origem antiga).
+const filaPorAtor = new Map();   // actorId -> promessa da última transferência na fila
+const pedidoPorAtor = new Map(); // actorId -> número do pedido mais recente
+const ondeLevei = new Map();     // actorId -> sceneId para onde o módulo levou o token por último
 export function moverTokenDoJogador(user, destino, origemId = user.viewedScene ?? user.getFlag(ID, "cena")) {
   const ator = user.character;
   if (!ator) return Promise.resolve();
+  const pedido = (pedidoPorAtor.get(ator.id) ?? 0) + 1;
+  pedidoPorAtor.set(ator.id, pedido);
   const anterior = filaPorAtor.get(ator.id) ?? Promise.resolve();
-  const vez = anterior.catch(() => {}).then(() => transferirPersonagem(user, ator, destino, origemId));
+  const vez = anterior.catch(() => {}).then(() => {
+    if (pedidoPorAtor.get(ator.id) !== pedido) return; // substituído por um envio mais novo
+    return transferirPersonagem(ator, destino, origemId);
+  });
   filaPorAtor.set(ator.id, vez);
-  vez.catch(() => {}).finally(() => { if (filaPorAtor.get(ator.id) === vez) filaPorAtor.delete(ator.id); });
+  vez.catch(() => {}).finally(() => {
+    if (filaPorAtor.get(ator.id) !== vez) return;
+    filaPorAtor.delete(ator.id);
+    pedidoPorAtor.delete(ator.id);
+  });
   return vez;
 }
 
-async function transferirPersonagem(user, ator, destino, origemId) {
+async function transferirPersonagem(ator, destino, origemId) {
   if (destino.tokens.some(tk => tk.actorId === ator.id)) return;
-  const origem = game.scenes.get(origemId);
-  const antigo = origem && origem.id !== destino.id ? origem.tokens.find(tk => tk.actorId === ator.id) : null;
-  if (antigo) return moverTokenPara(antigo, destino);
+  // Onde o token está agora: primeiro onde o módulo o deixou por último, depois a origem informada
+  let antigo = null;
+  for (const id of new Set([ondeLevei.get(ator.id), origemId])) {
+    const cena = id && id !== destino.id ? game.scenes.get(id) : null;
+    antigo = cena?.tokens.find(tk => tk.actorId === ator.id) ?? null;
+    if (antigo) break;
+  }
+  if (antigo) {
+    const novo = await moverTokenPara(antigo, destino);
+    ondeLevei.set(ator.id, destino.id);
+    return novo;
+  }
 
   const proto = ator.prototypeToken;
-  const dados = vagaLivre(destino, null, { width: proto?.width ?? 1, height: proto?.height ?? 1 });
+  const dados = vagaLivre(destino, null, { width: proto?.width ?? 1, height: proto?.height ?? 1, nome: proto?.name || ator.name });
   const novo = await ator.getTokenDocument(dados, { parent: destino });
   await destino.createEmbeddedDocuments("Token", [novo.toObject()]);
+  ondeLevei.set(ator.id, destino.id);
 }
 
 // Deixa a animação do movimento terminar antes de sumir com o token

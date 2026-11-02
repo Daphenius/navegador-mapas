@@ -1,5 +1,16 @@
 # Changelog
 
+## v4.5.1
+
+Correções a partir da segunda revisão externa (2/11/2026).
+
+### Correções
+- **Dois envios rápidos do mesmo personagem para mapas diferentes** (por exemplo, para B e logo em seguida para C) não deixam mais um token em cada mapa. Um envio mais novo substitui o que ainda estava esperando, e cada transferência procura o token onde o módulo o deixou por último, não na origem antiga. No fim fica um token só, no último destino.
+- **Token maior que o mapa** (por exemplo, um 3x3 num mapa de 2x2 casas) não é mais criado saindo pela borda. A transferência para antes de criar qualquer coisa, o token continua onde estava e o mestre é avisado.
+
+### Por dentro
+- 4 testes novos (35 no total), que reproduzem os dois casos e falhavam na v4.5.0.
+
 ## v4.5.0
 
 ### Novidade: área de chegada

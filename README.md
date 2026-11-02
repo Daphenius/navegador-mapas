@@ -68,7 +68,7 @@ No menu ⋮ do mapa, use **Definir ponto de chegada** e clique no lugar.
 
 O mestre vê a área desenhada em laranja, com a casa da bandeira mais forte. Com a área cheia, os próximos tokens ficam na casa livre mais perto, fora dela, e o mestre recebe um aviso. A área vale só para a bandeira: num portal com Região, o token vai para o centro da Região.
 
-Os tokens chegam nas casas livres, sem sair da área do mapa e sem cair em cima de outro token. Isso vale para tokens de qualquer tamanho na grade quadrada. Na grade hexagonal, o módulo usa o retângulo do token, o que às vezes deixa uma casa a mais de folga. Esse caso ainda não foi testado a fundo no Foundry. Se não houver casa livre por perto, o token fica no ponto de chegada e o mestre recebe um aviso. Só o mestre vê a bandeirinha laranja que marca o ponto.
+Os tokens chegam nas casas livres, sem sair da área do mapa e sem cair em cima de outro token. Isso vale para tokens de qualquer tamanho na grade quadrada. Na grade hexagonal, o módulo usa o retângulo do token, o que às vezes deixa uma casa a mais de folga. Esse caso ainda não foi testado a fundo no Foundry. Se não houver casa livre por perto, o token fica no ponto de chegada e o mestre recebe um aviso. Um token maior que o próprio mapa não é levado: ele continua onde estava, e o mestre é avisado. Só o mestre vê a bandeirinha laranja que marca o ponto.
 
 ### Música por mapa
 Em **Nota, etiquetas e música**, escolha uma playlist nativa do Foundry para o mapa:

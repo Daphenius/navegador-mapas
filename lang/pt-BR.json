@@ -21,7 +21,8 @@
       "TransferenciaDesfeita": "Não consegui tirar {token} de \"{origem}\". A cópia em \"{destino}\" foi desfeita, e o token continua em \"{origem}\".",
       "TokenDuplicado": "{token} ficou em dois mapas: \"{origem}\" e \"{destino}\". Não consegui desfazer a cópia; apague um dos dois à mão.",
       "SemCasaLivre": "Não achei casa livre perto do ponto de chegada em \"{mapa}\". O token ficou no ponto de chegada, possivelmente em cima de outro.",
-      "AreaCheia": "Área de chegada de \"{mapa}\" cheia: o token ficou na casa livre mais perto, fora da área."
+      "AreaCheia": "Área de chegada de \"{mapa}\" cheia: o token ficou na casa livre mais perto, fora da área.",
+      "TokenNaoCabe": "{token} é maior que o mapa \"{mapa}\" e não cabe nele. O token não foi levado e continua onde estava."
     },
     "Transicao": {
       "Carregando": "Carregando"
