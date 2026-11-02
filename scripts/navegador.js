@@ -523,7 +523,7 @@ function vagaLivre(destino, centro = null, { width = 1, height = 1 } = {}) {
       casas.push(chave(grid.getOffset({ x: x + (j + 0.5) * gs, y: y + (i + 0.5) * gs })));
     return casas;
   };
-  const ocupadas = new Set(destino.tokens.flatMap(tk => casasDe(tk.x, tk.y, tk.width ?? 1, tk.height ?? 1)));
+  const ocupadas = new Set(destino.tokens.contents.flatMap(tk => casasDe(tk.x, tk.y, tk.width ?? 1, tk.height ?? 1)));
   const dentro = p => p.x >= d.sceneX && p.y >= d.sceneY && p.x <= d.sceneX + d.sceneWidth && p.y <= d.sceneY + d.sceneHeight;
   // Posição do token quando a casa é a primeira dele (na hexagonal, centrado na casa)
   const posicao = o => {

@@ -1,5 +1,10 @@
 # Changelog
 
+## v4.0.3
+
+### Correções
+- **Levar a outro mapa** voltou a funcionar: o token não era transferido e aparecia o erro "destino.tokens.flatMap is not a function" (o Foundry v14 não tem essa função na lista de tokens do mapa). Isso afetava o portal e a ação "Levar a outro mapa" do Objetos Vivos.
+
 ## v4.0.2
 
 ### Segurança
