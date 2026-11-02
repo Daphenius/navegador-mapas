@@ -9,6 +9,7 @@ const TEMPO_MIN_TRANSICAO_MS = 1600;    // a tela fica pelo menos isso, para dar
 const SEGURANCA_TRANSICAO_MS = 90_000;  // se algo travar, a tela some sozinha depois disso
 const PAN_CHEGADA_MS = 600;             // duração do movimento da câmera até o token ao chegar
 const FADE_MUSICA_MS = 1500;            // a música local abaixa aos poucos antes de parar
+const ESPERA_FAIXAS_MS = 10_000;        // quanto o jogador espera o mestre mandar as faixas da playlist
 const TRAVA_MUSICA_TODOS_MS = 3000;     // evita disparar a mesma playlist duas vezes num envio em grupo
 const RESERVA_CASA_MS = 5000;           // casa reservada para um token que está chegando (envio em grupo)
 const RAIO_BUSCA_CASAS = 8;             // até quantas casas de distância procurar uma casa livre
@@ -101,14 +102,25 @@ function faixasDaPlaylist(pl) {
 }
 
 // Mestre: faixas atuais da música "local" de um mapa (null se não houver)
+// (playlist apagada: responde com a lista vazia, para o jogador não ficar esperando)
 export function faixasDoMapa(sceneId) {
   const m = game.scenes.get(sceneId)?.getFlag(ID, "musica");
-  const pl = m?.modo === "local" ? game.playlists.get(m.playlist) : null;
-  return pl ? { playlist: pl.id, ...faixasDaPlaylist(pl) } : null;
+  if (m?.modo !== "local" || !m.playlist) return null;
+  const pl = game.playlists.get(m.playlist);
+  return { playlist: m.playlist, ...(pl ? faixasDaPlaylist(pl) : { sons: [], aleatorio: false }) };
+}
+
+// Pedido de faixas ao mestre que ainda não foi respondido (só vale o mais recente)
+let pedidoFaixas = null; // { sceneId, playlist, tm }
+function cancelarPedidoFaixas() {
+  clearTimeout(pedidoFaixas?.tm);
+  pedidoFaixas = null;
 }
 
 // Jogador: resposta do mestre com as faixas (só vale se ele ainda está naquele mapa)
 export function aoReceberFaixas(data) {
+  if (pedidoFaixas?.sceneId !== data.sceneId || pedidoFaixas.playlist !== data.playlist) return;
+  cancelarPedidoFaixas();
   const m = canvas.scene?.id === data.sceneId ? canvas.scene.getFlag(ID, "musica") : null;
   if (m?.modo !== "local" || m.playlist !== data.playlist || !Array.isArray(data.sons)) return;
   const sons = data.sons.filter(s => typeof s?.path === "string")
@@ -148,13 +160,26 @@ export function atualizarMusicaLocal() {
   if (game.user.isGM) return;
   const cena = canvas.scene;
   const m = cena?.getFlag(ID, "musica");
-  if (m?.modo !== "local" || !m.playlist) return pararLocal();
+  if (m?.modo !== "local" || !m.playlist) { cancelarPedidoFaixas(); return pararLocal(); }
   if (musicaLocal?.playlist === m.playlist) return;
+  if (pedidoFaixas?.sceneId === cena.id && pedidoFaixas.playlist === m.playlist) return; // já pediu, esperando
+  // Mapa com outra música: a anterior para já, sem esperar as faixas novas
+  cancelarPedidoFaixas();
+  pararLocal();
   const pl = game.playlists.get(m.playlist);
   if (pl) return tocarLocal(m, faixasDaPlaylist(pl));
-  if (game.users.activeGM) return emitir({ acao: "pedir-musica", sceneId: cena.id });
-  // Sem mestre conectado: cópia das faixas que as versões até a 4.3 guardavam no mapa, se houver
-  if (m.sons?.length) tocarLocal(m, { sons: m.sons, aleatorio: !!m.aleatorio });
+  // Cópia das faixas que as versões até a 4.3 guardavam no mapa (só quando não há outra fonte)
+  const copiaAntiga = () => { if (m.sons?.length) tocarLocal(m, { sons: m.sons, aleatorio: !!m.aleatorio }); };
+  if (!game.users.activeGM) return copiaAntiga();
+  // Sem acesso à playlist: pede as faixas ao mestre; sem resposta a tempo, fica em silêncio (ou usa a cópia antiga)
+  const pedido = pedidoFaixas = { sceneId: cena.id, playlist: m.playlist };
+  pedido.tm = setTimeout(() => {
+    if (pedidoFaixas !== pedido) return;
+    pedidoFaixas = null;
+    console.warn(`${ID} | o mestre não mandou as faixas da música de "${cena.name}"`);
+    if (canvas.scene?.id === cena.id) copiaAntiga();
+  }, ESPERA_FAIXAS_MS);
+  emitir({ acao: "pedir-musica", sceneId: cena.id });
 }
 
 const tocandoAgora = new Set();
@@ -191,13 +216,52 @@ async function centroDaRegiao(uuid) {
   return Number.isFinite(x0) ? { x: (x0 + x1) / 2, y: (y0 + y1) / 2 } : null;
 }
 
-// Casa livre mais perto do ponto (ponto de chegada do mapa, ou o centro), em espiral.
+// Casas em volta de uma casa, em anéis (raio 0 = a própria casa, raio 1 = as vizinhas...).
+// Hexagonal: os vizinhos que a própria grade informa (anéis de 6, 12, 18 hexágonos).
+// Quadrada: as 8 casas em volta, diagonais incluídas (anéis quadrados de 8, 16...), qualquer que
+// seja a regra de diagonal do mundo. Devolve [{ o: {i, j}, raio }] do centro para fora.
+function casasEmAneis(grid, o0, raioMax) {
+  const chave = o => `${o.i},${o.j}`;
+  const vizinhas = grid.isHexagonal ? o => grid.getAdjacentOffsets(o)
+    : o => [-1, 0, 1].flatMap(di => [-1, 0, 1].map(dj => ({ i: o.i + di, j: o.j + dj }))).filter(x => x.i !== o.i || x.j !== o.j);
+  const vistas = new Set([chave(o0)]);
+  const lista = [{ o: { i: o0.i, j: o0.j }, raio: 0 }];
+  for (let k = 0; k < lista.length; k++) {
+    const { o, raio } = lista[k];
+    if (raio >= raioMax) continue;
+    for (const v of vizinhas(o)) {
+      const n = { i: v.i, j: v.j };
+      if (vistas.has(chave(n))) continue;
+      vistas.add(chave(n));
+      lista.push({ o: n, raio: raio + 1 });
+    }
+  }
+  return lista;
+}
+
+// Grade usada para a área de chegada (sem grade, vale uma grade quadrada do tamanho configurado)
+const gradeDe = cena => cena.grid.isGridless ? new foundry.grid.SquareGrid({ size: cena.dimensions.size }) : cena.grid;
+
+// Raio da área de chegada escolhido pelo mestre (0 = só a casa da bandeira)
+const raioDaArea = () => Math.max(0, Math.min(5, Math.round(Number(cfg("areaChegada")) || 0)));
+
+// Casas da área de chegada de um mapa (vazio se o mapa não tem bandeira)
+export function casasDaArea(cena) {
+  const chegada = cena?.getFlag(ID, "chegada");
+  if (!chegada) return [];
+  const grid = gradeDe(cena);
+  const o0 = grid.getOffset({ x: chegada.x + grid.sizeX / 2, y: chegada.y + grid.sizeY / 2 });
+  return casasEmAneis(grid, o0, raioDaArea());
+}
+
+// Casa livre mais perto do ponto (ponto de chegada do mapa, ou o centro), do centro para fora.
+// Com bandeira, primeiro as casas da área de chegada (uma casa por token); com a área cheia,
+// a casa livre mais próxima fora dela, e o mestre é avisado.
 // Usa a grade do mapa (quadrada ou hexagonal); sem grade, vale uma grade quadrada do tamanho configurado.
 // width/height: tamanho do token em casas, para ele não cair em cima de outro.
 function vagaLivre(destino, centro = null, { width = 1, height = 1 } = {}) {
   const d = destino.dimensions;
-  const gs = d.size;
-  const grid = destino.grid.isGridless ? new foundry.grid.SquareGrid({ size: gs }) : destino.grid;
+  const grid = gradeDe(destino);
   const hex = grid.isHexagonal;
   const chegada = destino.getFlag(ID, "chegada");
   // A bandeirinha guarda o canto da casa; passamos para o centro dela para achar a casa certa em qualquer grade
@@ -208,55 +272,94 @@ function vagaLivre(destino, centro = null, { width = 1, height = 1 } = {}) {
   const res = reservas.get(destino.id) ?? new Set();
   reservas.set(destino.id, res);
 
-  // Casas que um token ocupa (na grade quadrada, todas as dele; na hexagonal, a do centro)
+  // Casas que um token ocupa: todas as casas que o retângulo dele toca, amostrado a cada meia casa.
+  // Na grade quadrada é exato; na hexagonal é um pouco folgado (prefere deixar espaço a encostar).
   const casasDe = (x, y, w, h) => {
-    if (hex) return [chave(grid.getOffset({ x: x + w * grid.sizeX / 2, y: y + h * grid.sizeY / 2 }))];
-    const casas = [];
-    for (let i = 0; i < Math.max(1, Math.ceil(h)); i++) for (let j = 0; j < Math.max(1, Math.ceil(w)); j++)
-      casas.push(chave(grid.getOffset({ x: x + (j + 0.5) * gs, y: y + (i + 0.5) * gs })));
-    return casas;
+    const larg = Math.max(1, w) * grid.sizeX, alt = Math.max(1, h) * grid.sizeY;
+    const px = grid.sizeX / 2, py = grid.sizeY / 2;
+    const casas = new Set();
+    for (let yy = y + py / 2; yy < y + alt; yy += py) for (let xx = x + px / 2; xx < x + larg; xx += px)
+      casas.add(chave(grid.getOffset({ x: xx, y: yy })));
+    return [...casas];
   };
   const ocupadas = new Set(destino.tokens.contents.flatMap(tk => casasDe(tk.x, tk.y, tk.width ?? 1, tk.height ?? 1)));
-  const dentro = p => p.x >= d.sceneX && p.y >= d.sceneY && p.x <= d.sceneX + d.sceneWidth && p.y <= d.sceneY + d.sceneHeight;
+  const larg = Math.max(1, width) * grid.sizeX, alt = Math.max(1, height) * grid.sizeY;
+  // O token inteiro (não só o centro da casa) precisa caber dentro da área do mapa
+  const cabe = p => p.x >= d.sceneX && p.y >= d.sceneY
+    && p.x + larg <= d.sceneX + d.sceneWidth + 1 && p.y + alt <= d.sceneY + d.sceneHeight + 1;
   // Posição do token quando a casa é a primeira dele (na hexagonal, centrado na casa)
   const posicao = o => {
     if (!hex) return grid.getTopLeftPoint(o);
     const c = grid.getCenterPoint(o);
-    return { x: c.x - width * grid.sizeX / 2, y: c.y - height * grid.sizeY / 2 };
+    return { x: c.x - larg / 2, y: c.y - alt / 2 };
   };
 
-  for (let raio = 0; raio <= RAIO_BUSCA_CASAS; raio++) {
-    for (let di = -raio; di <= raio; di++) for (let dj = -raio; dj <= raio; dj++) {
-      if (Math.max(Math.abs(di), Math.abs(dj)) !== raio) continue;
-      const o = { i: o0.i + di, j: o0.j + dj };
-      if (!dentro(grid.getCenterPoint(o))) continue;
-      const p = posicao(o);
-      const casas = casasDe(p.x, p.y, width, height);
-      if (casas.some(k => ocupadas.has(k) || res.has(k))) continue;
-      // Reserva as casas: vários tokens enviados juntos não caem no mesmo lugar
-      for (const k of casas) { res.add(k); setTimeout(() => res.delete(k), RESERVA_CASA_MS); }
-      return { x: Math.round(p.x), y: Math.round(p.y) };
-    }
+  // A área de chegada só vale para a bandeira (num portal com Região, o token vai para o centro dela)
+  const raioArea = !centro && chegada ? raioDaArea() : 0;
+  for (const { o, raio } of casasEmAneis(grid, o0, raioArea + RAIO_BUSCA_CASAS)) {
+    const p = posicao(o);
+    if (!cabe(p)) continue;
+    const casas = casasDe(p.x, p.y, width, height);
+    if (casas.some(k => ocupadas.has(k) || res.has(k))) continue;
+    // Reserva as casas: vários tokens enviados juntos não caem no mesmo lugar
+    for (const k of casas) { res.add(k); setTimeout(() => res.delete(k), RESERVA_CASA_MS); }
+    if (raioArea > 0 && raio > raioArea) ui.notifications.warn(t("Aviso.AreaCheia", { mapa: destino.name }));
+    return { x: Math.round(p.x), y: Math.round(p.y) };
   }
+  // Nenhuma casa livre perto: fica no ponto de referência, empurrado para dentro do mapa, e o mestre é avisado
+  ui.notifications.warn(t("Aviso.SemCasaLivre", { mapa: destino.name }));
   const p = posicao(o0);
-  return { x: Math.round(p.x), y: Math.round(p.y) };
+  const limitar = (v, min, max) => Math.max(min, Math.min(v, Math.max(min, max)));
+  return {
+    x: Math.round(limitar(p.x, d.sceneX, d.sceneX + d.sceneWidth - larg)),
+    y: Math.round(limitar(p.y, d.sceneY, d.sceneY + d.sceneHeight - alt))
+  };
 }
 
 // Leva um token existente para outro mapa (mantém vida, efeitos e configurações dele)
+// Cria a cópia no destino e só então apaga o original. Se apagar o original falhar,
+// desfaz a cópia; se até isso falhar, avisa o mestre (fica um token em cada mapa).
+// Em qualquer falha lança um erro com .avisado = true (quem chamou não repete o aviso).
 async function moverTokenPara(tokenDoc, destino, centro = null) {
   const origem = tokenDoc.parent;
   const dados = tokenDoc.toObject();
   for (const k of Object.keys(dados)) if (k.startsWith("_")) delete dados[k];
   Object.assign(dados, vagaLivre(destino, centro, { width: tokenDoc.width, height: tokenDoc.height }));
   const [novo] = await destino.createEmbeddedDocuments("Token", [dados]);
-  if (origem && origem.id !== destino.id) await tokenDoc.delete();
+  if (!origem || origem.id === destino.id) return novo;
+  try {
+    await tokenDoc.delete();
+  } catch (errApagar) {
+    console.error(`${ID} | não consegui apagar ${tokenDoc.name} em "${origem.name}"`, errApagar);
+    const nomes = { token: tokenDoc.name, origem: origem.name, destino: destino.name };
+    try {
+      await novo?.delete();
+      ui.notifications.error(t("Aviso.TransferenciaDesfeita", nomes));
+    } catch (errDesfazer) {
+      console.error(`${ID} | não consegui desfazer a cópia de ${tokenDoc.name} em "${destino.name}"`, errDesfazer);
+      ui.notifications.error(t("Aviso.TokenDuplicado", nomes), { permanent: true });
+    }
+    throw Object.assign(new Error(`Transferência de ${tokenDoc.name} falhou`), { avisado: true });
+  }
   return novo;
 }
 
 // Token do personagem do jogador no mapa de destino
-export async function moverTokenDoJogador(user, destino, origemId = user.viewedScene ?? user.getFlag(ID, "cena")) {
+// Uma transferência por personagem de cada vez: dois jogadores com o mesmo personagem
+// enviados juntos esperam um pelo outro, e o segundo encontra o token já no destino.
+const filaPorAtor = new Map(); // actorId -> promessa da transferência em andamento
+export function moverTokenDoJogador(user, destino, origemId = user.viewedScene ?? user.getFlag(ID, "cena")) {
   const ator = user.character;
-  if (!ator || destino.tokens.some(tk => tk.actorId === ator.id)) return;
+  if (!ator) return Promise.resolve();
+  const anterior = filaPorAtor.get(ator.id) ?? Promise.resolve();
+  const vez = anterior.catch(() => {}).then(() => transferirPersonagem(user, ator, destino, origemId));
+  filaPorAtor.set(ator.id, vez);
+  vez.catch(() => {}).finally(() => { if (filaPorAtor.get(ator.id) === vez) filaPorAtor.delete(ator.id); });
+  return vez;
+}
+
+async function transferirPersonagem(user, ator, destino, origemId) {
+  if (destino.tokens.some(tk => tk.actorId === ator.id)) return;
   const origem = game.scenes.get(origemId);
   const antigo = origem && origem.id !== destino.id ? origem.tokens.find(tk => tk.actorId === ator.id) : null;
   if (antigo) return moverTokenPara(antigo, destino);
@@ -311,7 +414,7 @@ export async function executarPortal({ tokenUuid, sceneId, regiaoUuid, confirmar
     else tocarParaTodos(cena);
   } catch (err) {
     console.error(err);
-    ui.notifications.error(t("Portal.Erro"));
+    if (!err?.avisado) ui.notifications.error(t("Portal.Erro"));
   } finally {
     setTimeout(() => portaisEmCurso.delete(tokenUuid), FOLGA_PORTAL_MS);
   }
@@ -348,16 +451,19 @@ export function desenharChegada() {
     const gs = canvas.dimensions.size;
     const grid = canvas.grid;
     const g = new PIXI.Graphics();
-    // Contorno da casa de chegada no formato da grade (quadrado ou hexágono); sem grade, um quadrado
-    const vertices = grid.isGridless ? [] : grid.getVertices(grid.getOffset({ x: p.x + grid.sizeX / 2, y: p.y + grid.sizeY / 2 }));
-    g.lineStyle(3, 0xff8c1a, 0.9).beginFill(0xff8c1a, 0.15);
-    if (vertices.length) g.drawPolygon(vertices.flatMap(v => [v.x - p.x, v.y - p.y]));
-    else g.drawRect(0, 0, gs, gs);
-    g.endFill();
-    // bandeirinha
-    g.lineStyle(3, 0xffffff, 0.95).moveTo(gs * 0.35, gs * 0.8).lineTo(gs * 0.35, gs * 0.2);
-    g.lineStyle(0).beginFill(0xff8c1a, 1).drawPolygon([gs * 0.35, gs * 0.2, gs * 0.72, gs * 0.32, gs * 0.35, gs * 0.45]).endFill();
-    g.position.set(p.x, p.y);
+    // Área de chegada: cada casa no formato da grade (quadrado ou hexágono); a da bandeira mais forte.
+    // Sem grade, quadrados do tamanho configurado.
+    for (const { o, raio } of casasDaArea(canvas.scene)) {
+      const vertices = grid.isGridless ? [] : grid.getVertices(o);
+      g.lineStyle(raio ? 2 : 3, 0xff8c1a, raio ? 0.6 : 0.9).beginFill(0xff8c1a, raio ? 0.08 : 0.15);
+      if (vertices.length) g.drawPolygon(vertices.flatMap(v => [v.x, v.y]));
+      else g.drawRect(o.j * gs, o.i * gs, gs, gs);
+      g.endFill();
+    }
+    // bandeirinha, no canto da casa da bandeira
+    g.lineStyle(3, 0xffffff, 0.95).moveTo(p.x + gs * 0.35, p.y + gs * 0.8).lineTo(p.x + gs * 0.35, p.y + gs * 0.2);
+    g.lineStyle(0).beginFill(0xff8c1a, 1)
+      .drawPolygon([p.x + gs * 0.35, p.y + gs * 0.2, p.x + gs * 0.72, p.y + gs * 0.32, p.x + gs * 0.35, p.y + gs * 0.45]).endFill();
     g.eventMode = "none";
     canvas.controls.addChild(g);
     marcador = g;

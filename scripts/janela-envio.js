@@ -15,10 +15,16 @@ export const Envio = Base => class extends Base {
     this._tPing = setTimeout(() => { this.pingFeito = true; this.atualizar("jogadores"); }, ESPERA_PING_MS);
   }
 
-  // Espera a resposta de pré-carregamento de um jogador para um mapa específico
-  esperar(userId, sceneId, ms) {
-    const chave = `${userId}:${sceneId}`;
-    this.esperas.get(chave)?.(false); // um envio novo para o mesmo mapa substitui o anterior
+  // Cada envio (ou pré-carregamento) tem um identificador próprio, a "operação".
+  // O jogador devolve esse identificador nas respostas, e só a resposta da operação
+  // certa conclui, cancela ou limpa o estado dela: respostas atrasadas de um envio
+  // anterior (mesmo para o mesmo mapa) são ignoradas.
+  // fase: "pre" (pré-carregamento) ou "chegada"
+  _chaveEspera(userId, op, fase) { return `${userId}:${op}:${fase}`; }
+
+  // Espera a resposta de um jogador para uma operação
+  esperar(userId, op, fase, ms) {
+    const chave = this._chaveEspera(userId, op, fase);
     return new Promise(resolve => {
       const fim = ok => {
         clearTimeout(tm);
@@ -55,7 +61,10 @@ export const Envio = Base => class extends Base {
     const origemId = user.viewedScene ?? user.getFlag(ID, "cena"); // antes de marcar o destino
     user.setFlag(ID, "cena", cena.id).catch(console.error);
     const token = !semToken && cfg("levarToken") && user.character
-      ? moverTokenDoJogador(user, cena, origemId).catch(err => { console.error(err); ui.notifications.error(t("Aviso.ErroToken", { nome: user.name })); })
+      ? moverTokenDoJogador(user, cena, origemId).catch(err => {
+        console.error(err);
+        if (!err?.avisado) ui.notifications.error(t("Aviso.ErroToken", { nome: user.name }));
+      })
       : null;
 
     if (!user.active) {
@@ -67,13 +76,14 @@ export const Envio = Base => class extends Base {
     const semModulo = this.pingFeito && !this.receptores.has(user.id);
     if (semModulo) ui.notifications.warn(t("Aviso.SemModulo", { nome: user.name }));
     const pre = cfg("precarregar") && !semModulo && !this.precarregados.get(cena.id)?.has(user.id) && user.viewedScene !== cena.id;
-    const est = { sceneId: cena.id, envio: true, estado: pre ? "precarregando" : "indo" };
+    const op = foundry.utils.randomID();
+    const est = { sceneId: cena.id, envio: true, estado: pre ? "precarregando" : "indo", op };
     this.estados.set(user.id, est);
     this.atualizar();
 
     if (pre) {
-      emitir({ acao: "precarregar", userIds: [user.id], sceneId: cena.id });
-      const ok = await this.esperar(user.id, cena.id, TEMPO_PRECARGA);
+      emitir({ acao: "precarregar", userIds: [user.id], sceneId: cena.id, op });
+      const ok = await this.esperar(user.id, op, "pre", TEMPO_PRECARGA);
       if (!user.active || this.estados.get(user.id) !== est) return;
       if (!ok) console.warn(`${ID} | sem resposta do pré-carregamento de ${user.name}; enviando mesmo assim`);
       est.estado = "indo";
@@ -81,9 +91,9 @@ export const Envio = Base => class extends Base {
     }
     await token; // o token já está no mapa quando ele chega
     if (this.estados.get(user.id) !== est) return;
-    emitir({ acao: "puxar", userIds: [user.id], sceneId: cena.id });
+    emitir({ acao: "puxar", userIds: [user.id], sceneId: cena.id, op });
     // Se o jogador não confirmar a chegada a tempo, o "entrando..." some e o mestre é avisado
-    this.esperar(user.id, cena.id, TEMPO_PRECARGA).then(chegou => {
+    this.esperar(user.id, op, "chegada", TEMPO_PRECARGA).then(chegou => {
       if (chegou || this.estados.get(user.id) !== est) return;
       this.estados.delete(user.id);
       ui.notifications.warn(t("Aviso.SemChegada", { nome: user.name, mapa: cena.name }));
@@ -94,8 +104,9 @@ export const Envio = Base => class extends Base {
   precarregarTodos(cena) {
     const ids = game.users.filter(u => !u.isGM && u.active && !this.precarregados.get(cena.id)?.has(u.id)).map(u => u.id);
     if (!ids.length) return ui.notifications.info(t("Aviso.TodosPreCarregados"));
-    for (const id of ids) if (!this.estados.get(id)?.envio) this.estados.set(id, { sceneId: cena.id, envio: false, estado: "precarregando" });
-    emitir({ acao: "precarregar", userIds: ids, sceneId: cena.id });
+    const op = foundry.utils.randomID();
+    for (const id of ids) if (!this.estados.get(id)?.envio) this.estados.set(id, { sceneId: cena.id, envio: false, estado: "precarregando", op });
+    emitir({ acao: "precarregar", userIds: ids, sceneId: cena.id, op });
     ui.notifications.info(t("Aviso.PreCarregandoPara", { mapa: cena.name, n: ids.length }));
     this.atualizar();
   }
@@ -120,25 +131,32 @@ export const Envio = Base => class extends Base {
     if (data.acao !== "status") return;
 
     const user = game.users.get(data.userId);
+    // Só a resposta da operação em andamento (mesmo identificador e mesmo mapa) mexe no estado
     const est = this.estados.get(data.userId);
+    const daOperacao = !!est && typeof data.op === "string" && est.op === data.op && est.sceneId === data.sceneId;
+    const responder = (fase, ok) => { if (typeof data.op === "string") this.esperas.get(this._chaveEspera(data.userId, data.op, fase))?.(ok); };
 
     if (data.estado === "pronto" || data.estado === "erro-pre") {
-      if (data.estado === "pronto") {
+      // O mapa ficou mesmo carregado no navegador dele, venha de qual operação vier
+      if (data.estado === "pronto" && game.scenes.has(data.sceneId)) {
         const set = this.precarregados.get(data.sceneId) ?? new Set();
         set.add(data.userId);
         this.precarregados.set(data.sceneId, set);
-      } else ui.notifications.warn(t("Aviso.ErroPreCarregar", { nome: user?.name }));
-      this.esperas.get(`${data.userId}:${data.sceneId}`)?.(data.estado === "pronto");
-      if (est && !est.envio) this.estados.delete(data.userId);
+      }
+      responder("pre", data.estado === "pronto");
+      if (daOperacao) {
+        if (data.estado === "erro-pre") ui.notifications.warn(t("Aviso.ErroPreCarregar", { nome: user?.name }));
+        if (!est.envio) this.estados.delete(data.userId);
+      }
     }
-    if (data.estado === "chegou" && est) {
+    if (data.estado === "chegou" && daOperacao) {
       est.estado = "chegou";
-      this.esperas.get(`${data.userId}:${data.sceneId}`)?.(true);
+      responder("chegada", true);
       setTimeout(() => { if (this.estados.get(data.userId) === est) { this.estados.delete(data.userId); this.atualizar(); } }, MOSTRA_CHEGOU_MS);
     }
-    if (data.estado === "erro") {
+    if (data.estado === "erro" && daOperacao) {
       this.estados.delete(data.userId);
-      this.esperas.get(`${data.userId}:${data.sceneId}`)?.(false);
+      responder("chegada", false);
       ui.notifications.error(t("Aviso.ErroCarregar", { nome: user?.name }));
     }
     this.atualizar();

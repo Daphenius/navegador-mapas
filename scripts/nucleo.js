@@ -63,7 +63,7 @@ export function enfileirar(fn) {
 }
 
 // Configurações e atalho (chamado no init). aoMudarNav: reaplica as opções de ocultar
-export function registrarConfig({ aoMudarNav, aoAtalho }) {
+export function registrarConfig({ aoMudarNav, aoAtalho, aoMudarArea }) {
   const reg = (chave, dados) => game.settings.register(ID, chave, dados);
   reg("lembrarLugar", {
     name: "NM.Config.LembrarLugar.Nome", hint: "NM.Config.LembrarLugar.Dica",
@@ -73,6 +73,11 @@ export function registrarConfig({ aoMudarNav, aoAtalho }) {
     name: "NM.Config.Transicao.Nome", hint: "NM.Config.Transicao.Dica",
     scope: "world", config: true, type: String, default: "fundo",
     choices: { fundo: "NM.Config.Transicao.Fundo", nome: "NM.Config.Transicao.SoNome", off: "NM.Config.Transicao.Off" }
+  });
+  reg("areaChegada", {
+    name: "NM.Config.AreaChegada.Nome", hint: "NM.Config.AreaChegada.Dica",
+    scope: "world", config: true, type: Number, default: 0,
+    range: { min: 0, max: 5, step: 1 }, onChange: aoMudarArea
   });
   reg("ocultarNavMestre", {
     name: "NM.Config.OcultarNavMestre.Nome", hint: "NM.Config.OcultarNavMestre.Dica",

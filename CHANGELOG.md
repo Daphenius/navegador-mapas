@@ -1,5 +1,33 @@
 # Changelog
 
+## v4.5.0
+
+### Novidade: área de chegada
+- Nova configuração do mundo, **Tamanho da área de chegada** (0 a 5). O mestre escolhe quantos anéis de casas em volta da bandeira formam a área onde os tokens chegam. Na grade hexagonal, 1 = 7 hexágonos, 2 = 19, 3 = 37. Na quadrada, 1 = 9 quadrados, 2 = 25.
+- Cada token que chega ocupa um hexágono (ou quadrado) da área, do centro para fora. Com a área cheia, os próximos ficam na casa livre mais perto e o mestre é avisado.
+- O mestre vê a área inteira desenhada no mapa, com a casa da bandeira mais forte. Mudar a configuração redesenha na hora.
+- O padrão é 0, que é igual a antes: só a casa da bandeira, e os outros tokens nas casas livres mais próximas.
+- A busca de casa livre agora anda em anéis de verdade na grade hexagonal (antes usava um "quadrado" de casas, que no hexágono ficava torto).
+
+Correções a partir de uma revisão externa do código (2/11/2026).
+
+### Correções
+- **Levar token a outro mapa sem duplicar.** Se o Foundry não conseguir apagar o token no mapa de origem, a cópia criada no destino é desfeita e o mestre é avisado. Se nem isso der certo, aparece um aviso fixo dizendo qual token ficou em quais dois mapas, para você apagar um deles à mão. Nesses casos o portal não segue como se tivesse dado certo.
+- **Dois jogadores com o mesmo personagem** enviados juntos (em grupo ou "puxar todos") não criam mais dois tokens. O personagem é levado uma vez só, e os dois jogadores vão para o mapa.
+- **Respostas atrasadas não bagunçam o envio seguinte.** Cada envio agora tem um identificador próprio, e só a resposta daquele envio conclui ou cancela o "entrando em...". Antes, uma confirmação atrasada de um envio anterior podia marcar o jogador como já chegado ao mapa novo.
+- **Tokens grandes não saem mais do mapa.** A casa de chegada é escolhida de modo que o token inteiro caiba na área do mapa, e não só o centro dele. Sem casa livre por perto, o mestre recebe um aviso.
+- **Música ao trocar de mapa.** Quando o jogador entra num mapa com outra música, a anterior para na hora, sem esperar o mestre mandar as faixas novas. Se o mestre não responder em 10 segundos, fica em silêncio. Se a playlist do mapa foi apagada, o mestre avisa na hora e a música não começa.
+
+### Segurança
+- O socket agora descarta mensagens com argumentos a mais. Antes, um jogador podia emitir uma mensagem com um id falso de remetente na segunda posição e se passar pelo mestre, porque o Foundry acrescenta o id verdadeiro **depois** dos argumentos enviados.
+
+### Textos corrigidos
+- A v4.4.0 dizia que mudar a playlist "vale na hora" no modo "só quem entrar". Na verdade, as faixas são lidas quando a música começa. O README agora explica isso direito.
+- A v4.0.2 dizia que tokens grandes nunca caem em cima de outros. Isso vale na grade quadrada. Na hexagonal o cálculo agora usa o retângulo do token e é folgado, mas ainda não foi testado a fundo no Foundry. O README diz isso.
+
+### Por dentro
+- Nova pasta `testes/` com 31 testes automáticos (Foundry simulado, `node --test`). Eles cobrem transferências com falha, envios simultâneos, respostas fora de ordem, tokens de vários tamanhos nas quatro bordas, mapa sem espaço, música, remetente forjado e a área de chegada (numa grade hexagonal simulada). 14 dos testes de correção falhavam na v4.4.0.
+
 ## v4.4.0
 
 ### Música por mapa

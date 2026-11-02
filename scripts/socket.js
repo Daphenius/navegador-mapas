@@ -1,5 +1,8 @@
-// Navegador de Mundos — socket: canal entre mestre e jogadores, sempre conferindo o remetente real
-// (o 2º argumento do callback; o userId dentro dos dados não vale como prova)
+// Navegador de Mundos — socket: canal entre mestre e jogadores, sempre conferindo o remetente real.
+// O servidor do Foundry acrescenta o id de quem mandou DEPOIS dos argumentos emitidos (é nisso que o
+// socketlib também se apoia). O módulo sempre emite um argumento só, então a mensagem válida chega
+// como (dados, idDoRemetente). Se chegar com mais argumentos, alguém tentou empurrar um id falso
+// na 2ª posição, e a mensagem é descartada. O userId dentro dos dados nunca vale como prova.
 
 import { ID, SOCKET, emitir, souMestreAtivo, estado } from "./nucleo.js";
 import { precarregarLocal } from "./texturas.js";
@@ -12,7 +15,8 @@ const PARA_JOGADORES = new Set(["ping", "precarregar", "puxar", "faixas"]);
 async function aoReceberJogador(data, senderId) {
   // (as respostas dos outros jogadores também chegam aqui; só o que vem do mestre vale)
   if (!game.users.get(senderId)?.isGM) return;
-  const status = estado => emitir({ acao: "status", userId: game.user.id, sceneId: data.sceneId, estado });
+  // Devolve o identificador da operação, para o mestre saber a qual envio a resposta pertence
+  const status = estado => emitir({ acao: "status", userId: game.user.id, sceneId: data.sceneId, op: data.op, estado });
   if (data.acao === "ping") return emitir({ acao: "pong", userId: game.user.id });
   if (!data.userIds?.includes(game.user.id)) return;
   if (data.acao === "faixas") return aoReceberFaixas(data);
@@ -28,8 +32,9 @@ async function aoReceberJogador(data, senderId) {
 }
 
 export function registrarSocket() {
-  game.socket.on(SOCKET, async (data, senderId) => {
-    if (!data?.acao) return;
+  game.socket.on(SOCKET, async (data, ...resto) => {
+    if (!data?.acao || resto.length !== 1 || typeof resto[0] !== "string") return;
+    const senderId = resto[0];
     const remetente = game.users.get(senderId);
     if (!remetente) return;
     if (game.user.isGM) {

@@ -25,7 +25,7 @@ import { criarApi } from "./api.js";
 Hooks.once("init", () => {
   foundry.applications.handlebars.loadTemplates(Object.values(TEMPLATES));
   interceptarPrimeiroDesenho();
-  registrarConfig({ aoMudarNav: aplicarOcultarNav, aoAtalho: abrir });
+  registrarConfig({ aoMudarNav: aplicarOcultarNav, aoAtalho: abrir, aoMudarArea: desenharChegada });
 });
 
 Hooks.on("renderSceneNavigation", () => injetarBotaoNav());

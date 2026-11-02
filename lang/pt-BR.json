@@ -17,7 +17,11 @@
       "ErroPreCarregar": "{nome} não conseguiu pré-carregar o mapa.",
       "ErroCarregar": "{nome} não conseguiu carregar o mapa.",
       "SemChegada": "{nome} não confirmou a chegada em \"{mapa}\". Peça para ele apertar F5.",
-      "MapaNaoExiste": "Esse mapa não existe."
+      "MapaNaoExiste": "Esse mapa não existe.",
+      "TransferenciaDesfeita": "Não consegui tirar {token} de \"{origem}\". A cópia em \"{destino}\" foi desfeita, e o token continua em \"{origem}\".",
+      "TokenDuplicado": "{token} ficou em dois mapas: \"{origem}\" e \"{destino}\". Não consegui desfazer a cópia; apague um dos dois à mão.",
+      "SemCasaLivre": "Não achei casa livre perto do ponto de chegada em \"{mapa}\". O token ficou no ponto de chegada, possivelmente em cima de outro.",
+      "AreaCheia": "Área de chegada de \"{mapa}\" cheia: o token ficou na casa livre mais perto, fora da área."
     },
     "Transicao": {
       "Carregando": "Carregando"
@@ -178,6 +182,10 @@
       "OcultarAbaCenas": {
         "Nome": "Ocultar a aba Cenas da barra lateral",
         "Dica": "Esconde a aba de Cenas do lado direito, já que o Navegador de Mundos faz tudo que ela faz. Os mapas não são apagados: desligue para a aba voltar."
+      },
+      "AreaChegada": {
+        "Nome": "Tamanho da área de chegada",
+        "Dica": "Quantos anéis de casas em volta da bandeira de chegada formam a área onde os tokens chegam, um token por casa, do centro para fora. 0 = só a casa da bandeira (os outros tokens ficam nas casas livres mais próximas). 1 = a bandeira e as casas em volta (7 hexágonos ou 9 quadrados). 2 = 19 hexágonos ou 25 quadrados. Com a área cheia, os próximos tokens ficam na casa livre mais perto, e o mestre é avisado."
       }
     }
   }

@@ -55,14 +55,27 @@ Só o mestre usa o Navegador. Abra de qualquer um destes jeitos:
 - Indicador de quem está em cada mapa, inclusive dentro de pastas fechadas.
 
 ### Ponto de chegada
-No menu ⋮ do mapa, use **Definir ponto de chegada** e clique no lugar. Os tokens chegam ali e nas casas ao redor, respeitando a grade do mapa (quadrada ou hexagonal) e o tamanho de cada token. Só o mestre vê a bandeirinha laranja que marca o ponto.
+No menu ⋮ do mapa, use **Definir ponto de chegada** e clique no lugar.
+
+**Área de chegada:** em *Configurar Definições → Navegador de Mundos → Tamanho da área de chegada*, o mestre escolhe quantos anéis de casas em volta da bandeira formam a área (de 0 a 5). Cada token que chega ocupa uma casa da área, do centro para fora:
+
+| Tamanho | Grade hexagonal | Grade quadrada |
+|---|---|---|
+| 0 (padrão) | só o hexágono da bandeira | só o quadrado da bandeira |
+| 1 | 7 hexágonos | 9 quadrados |
+| 2 | 19 hexágonos | 25 quadrados |
+| 3 | 37 hexágonos | 49 quadrados |
+
+O mestre vê a área desenhada em laranja, com a casa da bandeira mais forte. Com a área cheia, os próximos tokens ficam na casa livre mais perto, fora dela, e o mestre recebe um aviso. A área vale só para a bandeira: num portal com Região, o token vai para o centro da Região.
+
+Os tokens chegam nas casas livres, sem sair da área do mapa e sem cair em cima de outro token. Isso vale para tokens de qualquer tamanho na grade quadrada. Na grade hexagonal, o módulo usa o retângulo do token, o que às vezes deixa uma casa a mais de folga. Esse caso ainda não foi testado a fundo no Foundry. Se não houver casa livre por perto, o token fica no ponto de chegada e o mestre recebe um aviso. Só o mestre vê a bandeirinha laranja que marca o ponto.
 
 ### Música por mapa
 Em **Nota, etiquetas e música**, escolha uma playlist nativa do Foundry para o mapa:
 - **Só quem entrar no mapa**: toca no navegador de quem está naquele mapa e para quando a pessoa sai.
 - **Todos**: o mestre toca a playlist para a mesa inteira.
 
-As faixas são lidas da playlist na hora de tocar, então mudar a playlist vale na hora. Jogadores que **não têm permissão de ver a playlist** também ouvem: o navegador deles pede as faixas ao mestre conectado.
+No modo "só quem entrar no mapa", a lista de faixas é lida da playlist quando a música começa, ou seja, quando o jogador entra no mapa. Se você mudar as faixas depois, a mudança vale da próxima vez que a música começar. Jogadores que **não têm permissão de ver a playlist** também ouvem: o navegador deles pede as faixas ao mestre conectado. Se o mestre não responder em 10 segundos, fica em silêncio. No modo "todos", quem toca é a própria playlist do Foundry, então qualquer mudança vale na hora.
 
 ### Objetos interativos e gatilhos
 Os gatilhos e portais que existiam até a v3.3 saíram deste módulo. Agora ficam no módulo **[Objetos Vivos](https://github.com/Daphenius/objetos-vivos)**, que transforma tiles, portas e paredes em objetos com ações. Com o Navegador ativo, o Objetos Vivos ganha a ação "Levar a outro mapa".
@@ -74,6 +87,7 @@ O Navegador **pré-carrega** o mapa no navegador do jogador antes da troca. Quem
 Em **Configurar Definições → Navegador de Mundos**:
 - jogadores voltam ao último mapa;
 - tela de transição (com fundo, só o nome ou desligada);
+- tamanho da área de chegada em volta da bandeira (0 a 5 anéis de casas);
 - ocultar a barra de navegação de cenas para o mestre e/ou para os jogadores;
 - ocultar a aba Cenas da barra lateral.
 
@@ -89,6 +103,10 @@ api.portal(token, sceneId, regiaoUuid);       // leva um token (e os jogadores d
 ## English
 
 **World Navigator** *(in testing — not complete yet and may contain many bugs and AI quirks)* is a GM map browser for Foundry VTT. It has folders, favorites, tags and saved player groups. You can send each player to a different map by dragging their portrait (like Roll20's Player Page), with arrival points, a transition screen and per-map music. Triggers and interactive objects now live in the separate **Living Objects** (objetos-vivos) module. The interface is translated into English. Tested on Foundry VTT v14 with the D&D 5e system.
+
+## Testes
+
+A pasta `testes/` tem testes automáticos da lógica (transferência de tokens, envios simultâneos, respostas fora de ordem, casas livres, área de chegada, música e socket), rodando num Foundry simulado. Para rodar, na pasta do módulo: `node --test`. Eles não substituem testar no Foundry real e não vão no pacote do módulo.
 
 ## Licença
 
