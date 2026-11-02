@@ -1,0 +1,43 @@
+<aside class="nm-lateral">
+  <h3><i class="fa-solid fa-users"></i> {{localize "NM.Jog.Titulo"}}</h3>
+  <div class="nm-sel-info" {{#unless variosSelecionados}}hidden{{/unless}}>
+    <span><i class="fa-solid fa-users"></i> {{{textoSelecionados}}}</span>
+    <span><a data-acao="salvar-grupo">{{localize "NM.Grupo.SalvarSelecao"}}</a> · <a data-acao="limpar-sel">{{localize "NM.Geral.Limpar"}}</a></span>
+  </div>
+
+  <div class="nm-lista-jog">
+    {{#each jogadores}}
+    <div class="nm-jogador {{#if sel}}sel{{/if}} {{#unless online}}offline{{/unless}} {{#if perdido}}perdido{{/if}}" data-user="{{id}}">
+      <div class="nm-avatar" style="border-color:{{cor}}">
+        <img src="{{img}}" draggable="false" decoding="async">
+        <span class="nm-status {{#if online}}on{{else}}off{{/if}}"></span>
+      </div>
+      <div class="nm-info">
+        <div class="nm-nome">{{nome}}
+          {{#if selo}}<i class="fa-solid {{selo.icone}} {{selo.classe}}" data-tooltip="{{selo.dica}}"></i>{{/if}}
+          {{#if perdido}}<i class="fa-solid fa-person-circle-question nm-alerta" data-tooltip="{{localize "NM.Jog.SemToken"}}"></i>{{/if}}
+        </div>
+        <div class="nm-sub">{{personagem}}</div>
+        <div class="nm-sub"><i class="fa-solid {{subIcone}}"></i> {{subTexto}}</div>
+        {{#if perdido}}
+        <button type="button" class="nm-acao-mini" data-acao="colocar-token" data-user="{{id}}"><i class="fa-solid fa-street-view"></i> {{localize "NM.Jog.ColocarToken"}}</button>
+        {{/if}}
+      </div>
+    </div>
+    {{else}}
+    <p class="nm-vazio">{{localize "NM.Jog.Nenhum"}}</p>
+    {{/each}}
+  </div>
+
+  <h3 style="margin-top:8px"><i class="fa-solid fa-people-group"></i> {{localize "NM.Grupo.Titulo"}}</h3>
+  <div class="nm-grupos">
+    {{#each grupos}}
+    <div class="nm-grupo" data-grupo="{{id}}" data-tooltip="{{dica}}">
+      <span class="nm-grupo-avatares">{{#each avatares}}<img src="{{img}}" style="border-color:{{cor}}" draggable="false">{{/each}}</span>
+      <span class="nm-grupo-nome">{{nome}}</span>
+    </div>
+    {{else}}
+    <p class="nm-dica">{{localize "NM.Grupo.Vazio"}}</p>
+    {{/each}}
+  </div>
+</aside>

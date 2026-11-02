@@ -1,0 +1,29 @@
+<section class="nm-principal" data-folder="">
+  {{#if etiquetas.length}}
+  <div class="nm-filtro-etq">
+    {{#each etiquetas}}
+    <span class="nm-etq filtro {{#if on}}on{{/if}}" data-etq="{{nome}}" style="--c:{{cor}}" data-tooltip="{{localize "NM.Etq.DicaFiltro"}}">{{nome}}</span>
+    {{/each}}
+    {{#if filtrandoEtq}}<a data-acao="limpar-etq">{{localize "NM.Geral.Limpar"}}</a>{{/if}}
+  </div>
+  {{/if}}
+
+  {{#if favoritos.length}}
+  <div class="nm-faixa">
+    <h4><i class="fa-solid fa-star"></i> {{localize "NM.Faixa.Favoritos"}}</h4>
+    <div class="nm-grade compacta">{{#each favoritos}}{{> "modules/navegador-mapas/templates/cena.hbs"}}{{/each}}</div>
+  </div>
+  {{/if}}
+  {{#if recentes.length}}
+  <div class="nm-faixa">
+    <h4><i class="fa-solid fa-clock-rotate-left"></i> {{localize "NM.Faixa.Recentes"}}</h4>
+    <div class="nm-grade compacta">{{#each recentes}}{{> "modules/navegador-mapas/templates/cena.hbs"}}{{/each}}</div>
+  </div>
+  {{/if}}
+
+  {{#each pastas}}{{> "modules/navegador-mapas/templates/pasta.hbs"}}{{/each}}
+  {{#if cenas.length}}
+  <div class="nm-grade">{{#each cenas}}{{> "modules/navegador-mapas/templates/cena.hbs"}}{{/each}}</div>
+  {{/if}}
+  {{#if vazio}}<p class="nm-vazio">{{vazio}}</p>{{/if}}
+</section>

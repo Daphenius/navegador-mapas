@@ -1,0 +1,32 @@
+<div class="nm-cena {{#if ativa}}ativa{{/if}} {{#if minha}}minha{{/if}} {{#if compacta}}compacta{{/if}}" data-scene="{{id}}" {{#if compacta}}data-faixa="1"{{/if}}>
+  <div class="nm-thumb">
+    {{#if thumb}}<img class="nm-thumb-img" src="{{thumb}}" loading="lazy" decoding="async" draggable="false">
+    {{else}}<div class="nm-sem-thumb" data-tooltip="{{localize "NM.Mapa.SemMiniatura"}}"><i class="fa-solid fa-image"></i></div>{{/if}}
+    {{#if ativa}}<span class="nm-tag">{{localize "NM.Mapa.Ativa"}}</span>{{/if}}
+    {{#if minha}}<span class="nm-tag nm-tag-eu" data-tooltip="{{localize "NM.Mapa.VoceAqui"}}"><i class="fa-solid fa-eye"></i></span>{{/if}}
+    {{#if precarregando}}<span class="nm-pre" data-tooltip="{{localize "NM.Mapa.PreCarregando"}}"><i class="fa-solid fa-spinner fa-spin"></i></span>
+    {{else if pre}}<span class="nm-pre" data-tooltip="{{preDica}}"><i class="fa-solid fa-download"></i> {{pre}}</span>{{/if}}
+    <div class="nm-presentes">
+      {{#each presentes}}
+      <span class="nm-mini {{#if indo}}indo{{/if}} {{#if perdido}}perdido{{/if}}" data-tooltip="{{dica}}">
+        <img src="{{img}}" style="border-color:{{cor}}" draggable="false">
+        {{#if indo}}<i class="fa-solid fa-spinner fa-spin"></i>{{else if perdido}}<i class="fa-solid fa-circle-question"></i>{{/if}}
+      </span>
+      {{/each}}
+    </div>
+  </div>
+  <div class="nm-rodape">
+    <span class="nm-cena-nome" title="{{nome}}">{{nome}}</span>
+    {{#if chegada}}<i class="fa-solid fa-flag nm-icone" data-tooltip="{{localize "NM.Mapa.TemChegada"}}"></i>{{/if}}
+    {{#if musicaDica}}<i class="fa-solid fa-music nm-icone" data-tooltip="{{musicaDica}}"></i>{{/if}}
+    {{#if foraNav}}<i class="fa-solid fa-eye-slash nm-icone" data-tooltip="{{localize "NM.Mapa.ForaNav"}}"></i>{{/if}}
+    <button type="button" class="nm-estrela {{#if fav}}on{{/if}}" data-tooltip="{{#if fav}}{{localize "NM.Mapa.Desfavoritar"}}{{else}}{{localize "NM.Mapa.Favoritar"}}{{/if}}"><i class="fa-{{#if fav}}solid{{else}}regular{{/if}} fa-star"></i></button>
+    <button type="button" class="nm-menu-btn" data-tooltip="{{localize "NM.Mapa.Opcoes"}}"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+  </div>
+  {{#if mostrarInfo}}
+  <div class="nm-info-cena">
+    {{#each etiquetas}}<span class="nm-etq" style="--c:{{cor}}">{{nome}}</span>{{/each}}
+    {{#if nota}}<span class="nm-nota" data-tooltip="{{nota}}">{{nota}}</span>{{/if}}
+  </div>
+  {{/if}}
+</div>

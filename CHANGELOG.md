@@ -1,5 +1,33 @@
 # Changelog
 
+## v4.2.0
+
+### Por dentro
+- O código, que era um arquivo único de quase 1.800 linhas, foi dividido por assunto. Nenhum arquivo passa de 600 linhas:
+  - `nucleo.js`: constantes, configurações e utilitários;
+  - `texturas.js`: pré-carregar mapas e liberar memória;
+  - `viagem.js`: troca de mapa, tela de transição, música, casas livres, portais e ponto de chegada;
+  - `socket.js`: mensagens entre mestre e jogadores (com a conferência do remetente real);
+  - `janela.js`, `janela-edicao.js` e `janela-envio.js`: a janela do mestre;
+  - `barra.js`: botão na navegação de cenas e opções de ocultar;
+  - `api.js`: a API para macros e outros módulos, agora documentada;
+  - `navegador.js`: só liga as peças (init, ready e ganchos).
+- Nada muda no uso: mesmas funções, mesmas configurações, mesma API.
+
+## v4.1.0
+
+### Desempenho
+- A janela do Navegador agora é desenhada em partes separadas (jogadores, busca, lista de mapas e opções). Quando algo muda, só a parte afetada é redesenhada, em vez da janela inteira.
+- Criar ou apagar tokens de NPC e mover tokens não redesenha mais a janela. Só o token do personagem de um jogador entrando ou saindo de um mapa atualiza o aviso "sem token".
+- Mudar o nome de um mapa ou de um personagem atualiza só o que mostra esse nome.
+- A lista de jogadores e a lista de mapas lembram onde você estava rolando depois de atualizar.
+
+### Por dentro
+- O visual saiu do código e foi para um arquivo próprio (`styles/navegador.css`), carregado pelo Foundry.
+- O conteúdo da janela agora vem de templates (`templates/*.hbs`), que escapam nomes de mapas, jogadores e grupos automaticamente.
+- As opções "Pré-carregar" e "Levar o token" ficam fixas embaixo da lista de jogadores, sem rolar junto.
+- Tirado o código de compatibilidade com versões antigas do Foundry (o mínimo continua sendo o v14).
+
 ## v4.0.3
 
 ### Correções

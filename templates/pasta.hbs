@@ -1,0 +1,18 @@
+<div class="nm-pasta {{#if aberta}}aberta{{/if}}" data-folder="{{id}}">
+  <div class="nm-pasta-cab" style="--cor:{{cor}}">
+    <i class="fa-solid {{#if aberta}}fa-folder-open{{else}}fa-folder{{/if}}"></i>
+    <span class="nm-pasta-nome">{{nome}}</span>
+    <span class="nm-pasta-presentes">{{#each presentes}}<img src="{{img}}" style="border-color:{{cor}}" data-tooltip="{{nome}}" draggable="false">{{/each}}</span>
+    <span class="nm-pasta-qtd">{{total}}</span>
+    <button type="button" class="nm-menu-btn" data-tooltip="{{localize "NM.Pasta.Opcoes"}}"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+  </div>
+  {{#if aberta}}
+  <div class="nm-pasta-corpo">
+    {{#each subpastas}}{{> "modules/navegador-mapas/templates/pasta.hbs"}}{{/each}}
+    {{#if cenas.length}}
+    <div class="nm-grade">{{#each cenas}}{{> "modules/navegador-mapas/templates/cena.hbs"}}{{/each}}</div>
+    {{/if}}
+    {{#if vazia}}<div class="nm-vazia">{{localize "NM.Pasta.Vazia"}}</div>{{/if}}
+  </div>
+  {{/if}}
+</div>

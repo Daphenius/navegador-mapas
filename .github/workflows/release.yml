@@ -26,7 +26,7 @@ jobs:
           grep -q "releases/download/v${VER}/navegador-mapas.zip" module.json || { echo "O link de download do module.json não aponta para v${VER}."; exit 1; }
 
       - name: Montar o ZIP (module.json na raiz)
-        run: zip -r navegador-mapas.zip module.json scripts lang README.md CHANGELOG.md LICENSE
+        run: zip -r navegador-mapas.zip module.json scripts styles templates lang README.md CHANGELOG.md LICENSE
 
       - name: Anexar na release
         uses: softprops/action-gh-release@v2
