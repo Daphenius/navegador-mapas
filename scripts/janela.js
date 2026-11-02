@@ -8,7 +8,9 @@ import { Envio } from "./janela-envio.js";
 // Templates da janela (carregados no init; pasta e cena também viram partials)
 export const TEMPLATES = Object.fromEntries(["jogadores", "topo", "lista", "rodape", "pasta", "cena"]
   .map(n => [n, `modules/${ID}/templates/${n}.hbs`]));
-const ESPERA_REDESENHO = 60; // ms juntando mudanças seguidas num redesenho só
+const ESPERA_REDESENHO = 60;   // ms juntando mudanças seguidas num redesenho só
+const ESPERA_BUSCA_MS = 150;   // espera a pessoa parar de digitar antes de filtrar
+const ARRASTE_MIN_PX = 6;      // o mouse precisa andar isso para virar arraste (menos é clique)
 
 // Abre a janela (só o mestre)
 export function abrir() {
@@ -343,7 +345,7 @@ export class NavegadorMapas extends Envio(Edicao(HandlebarsApplicationMixin(Appl
       if (ev.target.name !== "filtro") return;
       this.filtro = ev.target.value;
       clearTimeout(this._tBusca);
-      this._tBusca = setTimeout(() => this.atualizar("lista"), 150);
+      this._tBusca = setTimeout(() => this.atualizar("lista"), ESPERA_BUSCA_MS);
     }, op);
   }
 
@@ -506,7 +508,7 @@ export class NavegadorMapas extends Envio(Edicao(HandlebarsApplicationMixin(Appl
 
     const mover = e => {
       if (!fantasma) {
-        if (Math.hypot(e.clientX - x0, e.clientY - y0) < 6) return;
+        if (Math.hypot(e.clientX - x0, e.clientY - y0) < ARRASTE_MIN_PX) return;
         fantasma = criar();
         document.body.appendChild(fantasma);
       }

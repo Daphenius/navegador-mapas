@@ -50,7 +50,7 @@ Só o mestre usa o Navegador. Abra de qualquer um destes jeitos:
 - **Pré-carregamento**: o mapa carrega no navegador do jogador antes da troca.
 - **Levar o token junto**: o token do personagem vai para o **ponto de chegada** do mapa (veja abaixo), e vários tokens enviados juntos não se empilham.
 - **Tela de transição**: o jogador vê o nome do mapa (o nome que os jogadores enxergam) sobre a miniatura desfocada enquanto o mapa carrega.
-- **O jogador volta ao último mapa** em que estava ao recarregar (F5), sem carregar o mapa ativo antes. Atenção: **ativar um mapa** (menu ⋮ → "Ativar mapa") vale para a mesa toda e apaga o "último mapa" guardado dos jogadores que estão offline — quando eles conectarem, entram no mapa ativo, não no que estavam antes.
+- **O jogador volta ao último mapa** em que estava ao entrar ou recarregar (F5), sem carregar o mapa ativo antes. A única exceção é **"Ativar mapa"** (menu ⋮), que leva a mesa toda: quem está conectado vai na hora, e quem está offline entra no mapa ativo quando conectar. Enviar jogadores pelo Navegador nunca mexe no último mapa dos outros.
 - **Aviso de jogador sem token**: aparece quando um jogador está num mapa sem o token dele, com um botão para colocar o token ali.
 - Indicador de quem está em cada mapa, inclusive dentro de pastas fechadas.
 
@@ -62,7 +62,7 @@ Em **Nota, etiquetas e música**, escolha uma playlist nativa do Foundry para o 
 - **Só quem entrar no mapa**: toca no navegador de quem está naquele mapa e para quando a pessoa sai.
 - **Todos**: o mestre toca a playlist para a mesa inteira.
 
-A lista de faixas é lida da playlist na hora de tocar. Para jogadores que **não têm permissão de ver a playlist**, o módulo usa uma cópia das faixas guardada no mapa quando você salvou os detalhes: se mudar as faixas depois, abra **Nota, etiquetas e música** de novo e salve, para a cópia atualizar.
+As faixas são lidas da playlist na hora de tocar, então mudar a playlist vale na hora. Jogadores que **não têm permissão de ver a playlist** também ouvem: o navegador deles pede as faixas ao mestre conectado.
 
 ### Objetos interativos e gatilhos
 Os gatilhos e portais que existiam até a v3.3 saíram deste módulo. Agora ficam no módulo **[Objetos Vivos](https://github.com/Daphenius/objetos-vivos)**, que transforma tiles, portas e paredes em objetos com ações. Com o Navegador ativo, o Objetos Vivos ganha a ação "Levar a outro mapa".

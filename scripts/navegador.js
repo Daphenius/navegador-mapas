@@ -47,11 +47,12 @@ Hooks.on("deleteScene", async cena => {
   for (const u of game.users.filter(u => u.getFlag(ID, "cena") === cena.id)) await u.unsetFlag(ID, "cena").catch(console.error);
 });
 
+const PING_APOS_CONEXAO_MS = 4000; // dá tempo do módulo carregar no navegador de quem acabou de entrar
 Hooks.on("userConnected", (user, conectado) => {
   const app = estado.app;
   if (!game.user.isGM || !app) return;
   app.esquecer(user.id);
-  if (conectado) setTimeout(() => app.rendered && app.ping(), 4000);
+  if (conectado) setTimeout(() => app.rendered && app.ping(), PING_APOS_CONEXAO_MS);
 });
 
 Hooks.on("canvasReady", () => {

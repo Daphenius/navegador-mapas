@@ -158,7 +158,7 @@
     "Config": {
       "LembrarLugar": {
         "Nome": "Players return to their last map",
-        "Dica": "On joining or reloading (F5), the player opens directly on the last map they were on, without loading the active map first."
+        "Dica": "On joining or reloading (F5), the player opens directly on the last map they were on, without loading the active map first. Exception: \"Activate map\" takes the whole table, and anyone who was offline joins on the active map."
       },
       "Transicao": {
         "Nome": "Transition screen",

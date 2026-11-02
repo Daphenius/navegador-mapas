@@ -3,13 +3,16 @@
 import { ID, TEMPO_PRECARGA, t, cfg, emitir } from "./nucleo.js";
 import { moverTokenDoJogador, tocarParaTodos } from "./viagem.js";
 
+const ESPERA_PING_MS = 2500;   // tempo para os jogadores responderem ao "o módulo está aí?"
+const MOSTRA_CHEGOU_MS = 1500; // o "chegou" fica um instante no retrato antes de sumir
+
 export const Envio = Base => class extends Base {
   // Enviar jogadores
   ping() {
     this.pingFeito = false;
     emitir({ acao: "ping" });
     clearTimeout(this._tPing);
-    this._tPing = setTimeout(() => { this.pingFeito = true; this.atualizar("jogadores"); }, 2500);
+    this._tPing = setTimeout(() => { this.pingFeito = true; this.atualizar("jogadores"); }, ESPERA_PING_MS);
   }
 
   // Espera a resposta de pré-carregamento de um jogador para um mapa específico
@@ -131,7 +134,7 @@ export const Envio = Base => class extends Base {
     if (data.estado === "chegou" && est) {
       est.estado = "chegou";
       this.esperas.get(`${data.userId}:${data.sceneId}`)?.(true);
-      setTimeout(() => { if (this.estados.get(data.userId) === est) { this.estados.delete(data.userId); this.atualizar(); } }, 1500);
+      setTimeout(() => { if (this.estados.get(data.userId) === est) { this.estados.delete(data.userId); this.atualizar(); } }, MOSTRA_CHEGOU_MS);
     }
     if (data.estado === "erro") {
       this.estados.delete(data.userId);

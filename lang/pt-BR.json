@@ -158,7 +158,7 @@
     "Config": {
       "LembrarLugar": {
         "Nome": "Jogadores voltam ao último mapa",
-        "Dica": "Ao entrar ou recarregar (F5), o jogador abre direto no último mapa em que estava, sem carregar o mapa ativo antes."
+        "Dica": "Ao entrar ou recarregar (F5), o jogador abre direto no último mapa em que estava, sem carregar o mapa ativo antes. Exceção: \"Ativar mapa\" leva a mesa toda, e quem estava offline entra no mapa ativo."
       },
       "Transicao": {
         "Nome": "Tela de transição",

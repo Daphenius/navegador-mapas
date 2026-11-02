@@ -2,8 +2,9 @@
 
 export const ID = "navegador-mapas";
 export const SOCKET = `module.${ID}`;
-export const TEMPO_PRECARGA = 120_000;
-export const MAX_RECENTES = 6;
+export const TEMPO_PRECARGA = 120_000;     // espera máxima pelo pré-carregamento e pela confirmação de chegada
+export const MAX_RECENTES = 6;            // mapas recentes mostrados na faixa
+export const MAX_RECENTES_GUARDADOS = 12;  // guarda mais do que mostra: favoritos e mapas excluídos saem sem esvaziar a faixa
 
 export const t = (chave, dados) => dados ? game.i18n.format(`NM.${chave}`, dados) : game.i18n.localize(`NM.${chave}`);
 export const esc = s => String(s ?? "").replace(/[&<>"']/g, c =>
@@ -43,16 +44,18 @@ export async function pedirTexto(titulo, rotulo, valor = "") {
 }
 
 // Jogador: fila de carregamento, troca de mapa, último mapa visitado
-export function esperarCanvas(limite = 30_000) {
+const LIMITE_CANVAS_MS = 30_000;  // espera máxima pelo mapa terminar de carregar
+const FOLGA_CANVAS_MS = 300;      // folga depois do canvasReady para o mapa assentar
+export function esperarCanvas(limite = LIMITE_CANVAS_MS) {
   if (canvas.ready && !canvas.loading) return Promise.resolve();
   return new Promise(resolve => {
     // Se o tempo vencer, tira o gancho para ele não ficar pendurado
     const tm = setTimeout(() => { Hooks.off("canvasReady", id); resolve(); }, limite);
-    const id = Hooks.once("canvasReady", () => { clearTimeout(tm); setTimeout(resolve, 300); });
+    const id = Hooks.once("canvasReady", () => { clearTimeout(tm); setTimeout(resolve, FOLGA_CANVAS_MS); });
   });
 }
 
-export let fila = Promise.resolve();
+let fila = Promise.resolve();
 export function enfileirar(fn) {
   const p = fila.then(fn, fn);
   fila = p.catch(() => {});

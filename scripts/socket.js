@@ -3,15 +3,19 @@
 
 import { ID, SOCKET, emitir, souMestreAtivo, estado } from "./nucleo.js";
 import { precarregarLocal } from "./texturas.js";
-import { irPara, executarPortal } from "./viagem.js";
+import { irPara, executarPortal, faixasDoMapa, aoReceberFaixas } from "./viagem.js";
+
+// Mensagens que o mestre manda para os jogadores (outro mestre conectado só ignora)
+const PARA_JOGADORES = new Set(["ping", "precarregar", "puxar", "faixas"]);
 
 // senderId: quem mandou de verdade (vem do socket). Só o mestre pode comandar o jogador.
-export async function aoReceberJogador(data, senderId) {
+async function aoReceberJogador(data, senderId) {
   // (as respostas dos outros jogadores também chegam aqui; só o que vem do mestre vale)
   if (!game.users.get(senderId)?.isGM) return;
   const status = estado => emitir({ acao: "status", userId: game.user.id, sceneId: data.sceneId, estado });
   if (data.acao === "ping") return emitir({ acao: "pong", userId: game.user.id });
   if (!data.userIds?.includes(game.user.id)) return;
+  if (data.acao === "faixas") return aoReceberFaixas(data);
 
   if (data.acao === "precarregar") {
     try { await precarregarLocal(data.sceneId); status("pronto"); }
@@ -45,6 +49,13 @@ export function registrarSocket() {
         executarPortal(data);
         return;
       }
+      if (data.acao === "pedir-musica") {
+        // Jogador sem acesso à playlist do mapa: manda as faixas atuais só para ele
+        const f = souMestreAtivo() ? faixasDoMapa(data.sceneId) : null;
+        if (f) emitir({ acao: "faixas", userIds: [remetente.id], sceneId: data.sceneId, ...f });
+        return;
+      }
+      if (PARA_JOGADORES.has(data.acao)) return;
       if (data.acao === "pedir-envio") {
         // Jogador só pede para si mesmo; o mestre pode pedir para qualquer um
         const ids = remetente.isGM ? (data.userIds ?? []) : [remetente.id];

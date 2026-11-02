@@ -1,5 +1,22 @@
 # Changelog
 
+## v4.4.0
+
+### Música por mapa
+- As faixas agora são sempre lidas da playlist **na hora de tocar**. Mudou a playlist? Vale na hora, sem precisar salvar os detalhes do mapa de novo.
+- Jogadores sem permissão de ver a playlist continuam ouvindo: o navegador deles pede as faixas ao mestre conectado, que manda só para quem pediu.
+- O módulo não guarda mais uma cópia das faixas no mapa. A cópia antiga, que ficava desatualizada, é apagada quando você salva os detalhes do mapa. Enquanto isso não acontece, ela só é usada se não houver mestre conectado.
+
+### "Ativar mapa" e o último mapa do jogador
+- O comportamento continua o mesmo, mas agora o código, a configuração e o README dizem a mesma coisa: o jogador sempre volta ao último mapa, **exceto** depois de "Ativar mapa", que leva a mesa toda. Quem estava offline entra no mapa ativo quando conectar.
+- Os jogadores offline são atualizados todos de uma vez, e um erro em um deles não impede os outros.
+
+### Por dentro
+- Os tempos e limites que estavam soltos no código (trava da música, portais, reservas de casa, tela de transição, ping, busca etc.) viraram constantes com nome e uma linha explicando cada uma.
+- A tela de transição não pendura mais dados no próprio elemento da página.
+- Quando há mais de um mestre conectado, as mensagens enviadas aos jogadores não geram mais avisos no console do outro mestre.
+- Cada arquivo só exporta o que os outros realmente usam.
+
 ## v4.3.0
 
 ### Removido: "Liberar memória"

@@ -1,7 +1,9 @@
 // Navegador de Mundos — janela: menus e edição (grupos, mapas, pastas, favoritos, detalhes, ponto de chegada)
 
-import { ID, MAX_RECENTES, t, esc, cfg, comparar, ordenar, etiquetasDe, pedirTexto, esperarCanvas } from "./nucleo.js";
+import { ID, MAX_RECENTES_GUARDADOS, t, esc, cfg, comparar, ordenar, etiquetasDe, pedirTexto, esperarCanvas } from "./nucleo.js";
 import { escolherPontoNoCanvas } from "./viagem.js";
+
+const REABRIR_MENU_MS = 400; // clicar no ⋮ que acabou de fechar o menu não o abre de novo
 
 export const Edicao = Base => class extends Base {
   async salvarGrupo(grupoId = null) {
@@ -90,7 +92,7 @@ export const Edicao = Base => class extends Base {
     if (!itens.length) return;
     const noCursor = !(ancora instanceof HTMLElement);
     // Segundo clique no mesmo ⋮ só fecha
-    if (!noCursor && chave && this._fechadoEm?.chave === chave && Date.now() - this._fechadoEm.t < 400) {
+    if (!noCursor && chave && this._fechadoEm?.chave === chave && Date.now() - this._fechadoEm.t < REABRIR_MENU_MS) {
       this._fechadoEm = null;
       return;
     }
@@ -207,7 +209,7 @@ export const Edicao = Base => class extends Base {
     if (atual[0] === sceneId) return; // já é o mais recente: não grava de novo
     const lista = atual.filter(id => id !== sceneId && game.scenes.has(id));
     lista.unshift(sceneId);
-    game.settings.set(ID, "recentes", lista.slice(0, MAX_RECENTES + 6));
+    game.settings.set(ID, "recentes", lista.slice(0, MAX_RECENTES_GUARDADOS));
     this.atualizar("lista");
   }
 
@@ -248,11 +250,10 @@ export const Edicao = Base => class extends Base {
     const etiquetas = [...new Set(r.etiquetas.split(",").map(s => s.trim().toLowerCase()).filter(Boolean))];
     const flags = { nota: r.nota.trim(), etiquetas };
     const pl = game.playlists.get(r.playlist);
-    // Guarda também a lista das faixas: o jogador pode não ter acesso à playlist
-    flags.musica = pl ? {
-      playlist: pl.id, modo: r.modo, pararOutras: r.pararOutras, aleatorio: pl.mode === CONST.PLAYLIST_MODES.SHUFFLE,
-      sons: pl.sounds.contents.filter(s => s.path).sort((a, b) => a.sort - b.sort).map(s => ({ path: s.path, volume: s.volume ?? 0.5 }))
-    } : null;
+    // Só a playlist: as faixas são lidas dela na hora de tocar
+    flags.musica = pl ? { playlist: pl.id, modo: r.modo, pararOutras: r.pararOutras } : null;
+    // Apaga a cópia das faixas que as versões até a 4.3 guardavam (ela ficava desatualizada)
+    if (cena.getFlag(ID, "musica")?.sons) await cena.unsetFlag(ID, "musica");
     await cena.update({ [`flags.${ID}`]: flags });
   }
 

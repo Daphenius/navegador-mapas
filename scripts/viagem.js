@@ -3,8 +3,21 @@
 
 import { ID, t, esc, cfg, emitir, souMestreAtivo, estado, enfileirar, esperarCanvas } from "./nucleo.js";
 
+const ENTRADA_TRANSICAO_MS = 550;       // tempo do escurecimento antes de trocar o mapa (acompanha o CSS)
+const SAIDA_TRANSICAO_MS = 700;         // tempo do clareamento antes de tirar a tela do DOM
+const TEMPO_MIN_TRANSICAO_MS = 1600;    // a tela fica pelo menos isso, para dar tempo de ler o nome
+const SEGURANCA_TRANSICAO_MS = 90_000;  // se algo travar, a tela some sozinha depois disso
+const PAN_CHEGADA_MS = 600;             // duração do movimento da câmera até o token ao chegar
+const FADE_MUSICA_MS = 1500;            // a música local abaixa aos poucos antes de parar
+const TRAVA_MUSICA_TODOS_MS = 3000;     // evita disparar a mesma playlist duas vezes num envio em grupo
+const RESERVA_CASA_MS = 5000;           // casa reservada para um token que está chegando (envio em grupo)
+const RAIO_BUSCA_CASAS = 8;             // até quantas casas de distância procurar uma casa livre
+const TRAVA_PEDIDO_PORTAL_MS = 3000;    // ignora pedidos repetidos de portal para o mesmo token
+const FOLGA_PORTAL_MS = 2000;           // depois de um portal, o mesmo token fica esse tempo sem outro
+
 // Tela de transição: nome do mapa (o nome que os jogadores veem) enquanto ele carrega
-export async function mostrarTransicao(cena) {
+const telas = new WeakMap(); // tela -> { inicio, seguranca } (sem pendurar propriedades no elemento)
+async function mostrarTransicao(cena) {
   const modo = cfg("transicao");
   if (modo === "off") return null;
   const el = document.createElement("div");
@@ -16,31 +29,32 @@ export async function mostrarTransicao(cena) {
     <div class="nm-transicao-linha"></div>
     <div class="nm-transicao-sub">${esc(t("Transicao.Carregando"))}</div>`;
   document.body.appendChild(el);
-  el._inicio = Date.now();
-  el._seguranca = setTimeout(() => el.remove(), 90_000);
+  telas.set(el, { inicio: Date.now(), seguranca: setTimeout(() => el.remove(), SEGURANCA_TRANSICAO_MS) });
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("visivel")));
-  await new Promise(r => setTimeout(r, 550));
+  await new Promise(r => setTimeout(r, ENTRADA_TRANSICAO_MS));
   return el;
 }
 
-export async function esconderTransicao(el) {
-  if (!el) return;
-  const falta = 1600 - (Date.now() - el._inicio); // fica tempo suficiente para ler o nome
+async function esconderTransicao(el) {
+  const dados = el && telas.get(el);
+  if (!dados) return;
+  const falta = TEMPO_MIN_TRANSICAO_MS - (Date.now() - dados.inicio);
   if (falta > 0) await new Promise(r => setTimeout(r, falta));
-  clearTimeout(el._seguranca);
+  clearTimeout(dados.seguranca);
+  telas.delete(el);
   el.classList.remove("visivel");
-  setTimeout(() => el.remove(), 700);
+  setTimeout(() => el.remove(), SAIDA_TRANSICAO_MS);
 }
 
 // Ao chegar, seleciona o token do jogador e centraliza a câmera nele
-export function focarToken() {
+function focarToken() {
   try {
     const char = game.user.character;
     const tokens = canvas.tokens?.placeables ?? [];
     const tk = (char && tokens.find(x => x.document.actorId === char.id && x.isOwner)) ?? tokens.find(x => x.isOwner && x.actor?.hasPlayerOwner);
     if (!tk) return;
     tk.control({ releaseOthers: true });
-    canvas.animatePan({ x: tk.center.x, y: tk.center.y, duration: 600 });
+    canvas.animatePan({ x: tk.center.x, y: tk.center.y, duration: PAN_CHEGADA_MS });
   } catch (err) { console.warn(`${ID} |`, err); }
 }
 
@@ -76,18 +90,35 @@ export async function gravarLugar() {
 // Música do mapa
 // "local": só quem está no mapa ouve (toca no navegador dele).
 // "todos": o mestre toca a playlist nativa para a mesa inteira.
-export let musicaLocal = null;
-export function sonsDaMusica(m) {
-  const pl = game.playlists.get(m.playlist);
-  if (pl) return { sons: pl.sounds.contents.filter(s => s.path).sort((a, b) => a.sort - b.sort)
-    .map(s => ({ path: s.path, volume: s.volume ?? 0.5 })), aleatorio: pl.mode === CONST.PLAYLIST_MODES.SHUFFLE };
-  return { sons: m.sons ?? [], aleatorio: !!m.aleatorio }; // cópia guardada no mapa (jogador sem acesso à playlist)
+// As faixas são sempre lidas da playlist na hora de tocar. Jogador sem acesso à
+// playlist pede ao mestre, que lê as faixas atuais e manda só para ele.
+let musicaLocal = null;
+function faixasDaPlaylist(pl) {
+  return {
+    sons: pl.sounds.contents.filter(s => s.path).sort((a, b) => a.sort - b.sort).map(s => ({ path: s.path, volume: s.volume ?? 0.5 })),
+    aleatorio: pl.mode === CONST.PLAYLIST_MODES.SHUFFLE
+  };
 }
 
-export async function tocarLocal(m) {
+// Mestre: faixas atuais da música "local" de um mapa (null se não houver)
+export function faixasDoMapa(sceneId) {
+  const m = game.scenes.get(sceneId)?.getFlag(ID, "musica");
+  const pl = m?.modo === "local" ? game.playlists.get(m.playlist) : null;
+  return pl ? { playlist: pl.id, ...faixasDaPlaylist(pl) } : null;
+}
+
+// Jogador: resposta do mestre com as faixas (só vale se ele ainda está naquele mapa)
+export function aoReceberFaixas(data) {
+  const m = canvas.scene?.id === data.sceneId ? canvas.scene.getFlag(ID, "musica") : null;
+  if (m?.modo !== "local" || m.playlist !== data.playlist || !Array.isArray(data.sons)) return;
+  const sons = data.sons.filter(s => typeof s?.path === "string")
+    .map(s => ({ path: s.path, volume: Number.isFinite(s.volume) ? s.volume : 0.5 }));
+  tocarLocal(m, { sons, aleatorio: !!data.aleatorio });
+}
+
+async function tocarLocal(m, { sons, aleatorio }) {
   if (musicaLocal?.playlist === m.playlist) return;
   pararLocal();
-  const { sons, aleatorio } = sonsDaMusica(m);
   if (!sons.length) return;
   const atual = musicaLocal = { playlist: m.playlist, som: null, indice: aleatorio ? Math.floor(Math.random() * sons.length) : 0 };
   const tocar = async () => {
@@ -105,29 +136,35 @@ export async function tocarLocal(m) {
   await tocar().catch(err => console.warn(`${ID} | não consegui tocar a música do mapa`, err));
 }
 
-export function pararLocal() {
+function pararLocal() {
   const som = musicaLocal?.som;
   musicaLocal = null;
   if (!som) return;
-  try { som.fade?.(0, { duration: 1500 }); setTimeout(() => som.stop?.(), 1600); }
+  try { som.fade?.(0, { duration: FADE_MUSICA_MS }); setTimeout(() => som.stop?.(), FADE_MUSICA_MS + 100); }
   catch { som.stop?.(); }
 }
 
 export function atualizarMusicaLocal() {
   if (game.user.isGM) return;
-  const m = canvas.scene?.getFlag(ID, "musica");
-  if (m?.modo === "local" && m.playlist) tocarLocal(m);
-  else pararLocal();
+  const cena = canvas.scene;
+  const m = cena?.getFlag(ID, "musica");
+  if (m?.modo !== "local" || !m.playlist) return pararLocal();
+  if (musicaLocal?.playlist === m.playlist) return;
+  const pl = game.playlists.get(m.playlist);
+  if (pl) return tocarLocal(m, faixasDaPlaylist(pl));
+  if (game.users.activeGM) return emitir({ acao: "pedir-musica", sceneId: cena.id });
+  // Sem mestre conectado: cópia das faixas que as versões até a 4.3 guardavam no mapa, se houver
+  if (m.sons?.length) tocarLocal(m, { sons: m.sons, aleatorio: !!m.aleatorio });
 }
 
-export const tocandoAgora = new Set();
+const tocandoAgora = new Set();
 export async function tocarParaTodos(cena) {
   const m = cena?.getFlag(ID, "musica");
   if (m?.modo !== "todos" || !m.playlist || tocandoAgora.has(cena.id)) return;
   const pl = game.playlists.get(m.playlist);
   if (!pl || pl.playing) return;
   tocandoAgora.add(cena.id);
-  setTimeout(() => tocandoAgora.delete(cena.id), 3000);
+  setTimeout(() => tocandoAgora.delete(cena.id), TRAVA_MUSICA_TODOS_MS);
   try {
     if (m.pararOutras) for (const p of game.playlists.playing ?? []) if (p !== pl) await p.stopAll();
     await pl.playAll();
@@ -138,7 +175,7 @@ export async function tocarParaTodos(cena) {
 export const reservas = new Map(); // sceneId -> Set("col,lin") reservadas por alguns segundos
 
 // Centro de uma Região (pelos formatos dela), em qualquer mapa
-export async function centroDaRegiao(uuid) {
+async function centroDaRegiao(uuid) {
   const r = uuid ? await fromUuid(uuid) : null;
   if (!r) return null;
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -157,7 +194,7 @@ export async function centroDaRegiao(uuid) {
 // Casa livre mais perto do ponto (ponto de chegada do mapa, ou o centro), em espiral.
 // Usa a grade do mapa (quadrada ou hexagonal); sem grade, vale uma grade quadrada do tamanho configurado.
 // width/height: tamanho do token em casas, para ele não cair em cima de outro.
-export function vagaLivre(destino, centro = null, { width = 1, height = 1 } = {}) {
+function vagaLivre(destino, centro = null, { width = 1, height = 1 } = {}) {
   const d = destino.dimensions;
   const gs = d.size;
   const grid = destino.grid.isGridless ? new foundry.grid.SquareGrid({ size: gs }) : destino.grid;
@@ -188,7 +225,7 @@ export function vagaLivre(destino, centro = null, { width = 1, height = 1 } = {}
     return { x: c.x - width * grid.sizeX / 2, y: c.y - height * grid.sizeY / 2 };
   };
 
-  for (let raio = 0; raio <= 8; raio++) {
+  for (let raio = 0; raio <= RAIO_BUSCA_CASAS; raio++) {
     for (let di = -raio; di <= raio; di++) for (let dj = -raio; dj <= raio; dj++) {
       if (Math.max(Math.abs(di), Math.abs(dj)) !== raio) continue;
       const o = { i: o0.i + di, j: o0.j + dj };
@@ -197,7 +234,7 @@ export function vagaLivre(destino, centro = null, { width = 1, height = 1 } = {}
       const casas = casasDe(p.x, p.y, width, height);
       if (casas.some(k => ocupadas.has(k) || res.has(k))) continue;
       // Reserva as casas: vários tokens enviados juntos não caem no mesmo lugar
-      for (const k of casas) { res.add(k); setTimeout(() => res.delete(k), 5000); }
+      for (const k of casas) { res.add(k); setTimeout(() => res.delete(k), RESERVA_CASA_MS); }
       return { x: Math.round(p.x), y: Math.round(p.y) };
     }
   }
@@ -206,7 +243,7 @@ export function vagaLivre(destino, centro = null, { width = 1, height = 1 } = {}
 }
 
 // Leva um token existente para outro mapa (mantém vida, efeitos e configurações dele)
-export async function moverTokenPara(tokenDoc, destino, centro = null) {
+async function moverTokenPara(tokenDoc, destino, centro = null) {
   const origem = tokenDoc.parent;
   const dados = tokenDoc.toObject();
   for (const k of Object.keys(dados)) if (k.startsWith("_")) delete dados[k];
@@ -239,17 +276,17 @@ export async function esperarAnimacao(tokenDoc) {
 }
 
 // Levar um token (e os jogadores donos dele) para outro mapa — usado pela API (ex.: Objetos Vivos)
-export const emPortal = new Set();
+const emPortal = new Set();
 export function pedirPortal(dados) {
   if (emPortal.has(dados.tokenUuid)) return;
   emPortal.add(dados.tokenUuid);
-  setTimeout(() => emPortal.delete(dados.tokenUuid), 3000);
+  setTimeout(() => emPortal.delete(dados.tokenUuid), TRAVA_PEDIDO_PORTAL_MS);
   if (souMestreAtivo()) return executarPortal(dados);
   if (!game.users.activeGM) return ui.notifications.warn(t("Portal.SemMestre"));
   emitir({ acao: "portal", ...dados });
 }
 
-export const portaisEmCurso = new Set();
+const portaisEmCurso = new Set();
 export async function executarPortal({ tokenUuid, sceneId, regiaoUuid, confirmar }) {
   if (portaisEmCurso.has(tokenUuid)) return;
   portaisEmCurso.add(tokenUuid);
@@ -276,7 +313,7 @@ export async function executarPortal({ tokenUuid, sceneId, regiaoUuid, confirmar
     console.error(err);
     ui.notifications.error(t("Portal.Erro"));
   } finally {
-    setTimeout(() => portaisEmCurso.delete(tokenUuid), 2000);
+    setTimeout(() => portaisEmCurso.delete(tokenUuid), FOLGA_PORTAL_MS);
   }
 }
 
@@ -300,7 +337,7 @@ export function escolherPontoNoCanvas() {
   });
 }
 
-export let marcador = null;
+let marcador = null;
 export function desenharChegada() {
   try { marcador?.destroy({ children: true }); } catch (err) { console.warn(`${ID} | não consegui apagar o marcador anterior`, err); }
   marcador = null;
@@ -327,9 +364,12 @@ export function desenharChegada() {
   } catch (err) { console.warn(`${ID} | não consegui desenhar o ponto de chegada`, err); }
 }
 
+// "Ativar mapa" leva a mesa toda, inclusive quem está offline: o Foundry já puxa quem está
+// conectado, e aqui apagamos o "último mapa" dos offline para eles entrarem no mapa ativo.
+// (Enviar pelo Navegador continua valendo para cada jogador: só "ativar" passa por cima.)
 export async function limparFixasOffline() {
-  // Ativar um mapa vale também para quem está offline
-  for (const u of game.users.filter(u => !u.isGM && !u.active && u.getFlag(ID, "cena"))) await u.unsetFlag(ID, "cena");
+  const offline = game.users.filter(u => !u.isGM && !u.active && u.getFlag(ID, "cena"));
+  await Promise.all(offline.map(u => u.unsetFlag(ID, "cena").catch(console.error)));
 }
 
 // Carregamento duplo: ao entrar no jogo, o jogador já abre direto no último mapa
