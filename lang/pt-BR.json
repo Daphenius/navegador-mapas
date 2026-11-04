@@ -141,7 +141,15 @@
       "ModoLocal": "Só quem entrar no mapa",
       "ModoTodos": "Todos (o mestre toca a playlist)",
       "PararOutras": "Parar as outras playlists (modo \"todos\")",
-      "MusicaDica": "Usa as playlists nativas do Foundry, inclusive as criadas pelo Audio Console. \"Só quem entrar\" toca no navegador de quem está no mapa e para quando ele sai."
+      "MusicaDica": "Usa as playlists nativas do Foundry, inclusive as criadas pelo Audio Console. \"Só quem entrar\" toca no navegador de quem está no mapa e para quando ele sai.",
+      "Tela": "Tela de transição",
+      "TelaTitulo": "Título",
+      "TelaComentario": "Comentário (abaixo do título)",
+      "TelaComentarioExemplo": "A névoa cobre as árvores retorcidas...",
+      "TelaCarregando": "Texto de carregamento",
+      "TelaSemCarregando": "Sem texto de carregamento",
+      "TelaDica": "Em branco, usa o nome do mapa e o texto padrão das configurações. O comentário aceita mais de uma linha.",
+      "TelaPrevia": "Ver prévia (clique na tela para fechar)"
     },
     "Chegada": {
       "Clique": "Clique no mapa onde os tokens devem chegar. Esc ou botão direito cancela.",
@@ -171,6 +179,14 @@
         "Fundo": "Nome com a miniatura desfocada ao fundo",
         "SoNome": "Só o nome",
         "Off": "Desligada"
+      },
+      "TransicaoTexto": {
+        "Nome": "Texto de carregamento (padrão)",
+        "Dica": "Texto que aparece embaixo na tela de transição (em branco: \"Carregando\"). Cada mapa pode ter o seu em \"Nota, etiquetas e música\"."
+      },
+      "TransicaoTempo": {
+        "Nome": "Tempo mínimo da transição (segundos)",
+        "Dica": "A tela de transição fica pelo menos esse tempo, mesmo que o mapa carregue rápido, para a animação aparecer inteira. Se o mapa demorar mais, ela fica até ele terminar de carregar."
       },
       "OcultarNavMestre": {
         "Nome": "Ocultar a barra de navegação de mapas para o mestre",

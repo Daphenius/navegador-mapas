@@ -49,7 +49,7 @@ Só o mestre usa o Navegador. Abra de qualquer um destes jeitos:
 - **Grupos salvos** ("Grupo A", "Grupo B") para quando a party se divide. Arraste o grupo até o mapa.
 - **Pré-carregamento**: o mapa carrega no navegador do jogador antes da troca.
 - **Levar o token junto**: o token do personagem vai para o **ponto de chegada** do mapa (veja abaixo), e vários tokens enviados juntos não se empilham.
-- **Tela de transição**: o jogador vê o nome do mapa (o nome que os jogadores enxergam) sobre a miniatura desfocada enquanto o mapa carrega.
+- **Tela de transição**: o jogador vê o nome do mapa (o nome que os jogadores enxergam) sobre a miniatura desfocada enquanto o mapa carrega. Em **Nota, etiquetas e música** de cada mapa dá para trocar o título, escrever um comentário que aparece abaixo dele e mudar (ou tirar) o texto de carregamento, com um botão de prévia. A tela fica um tempo mínimo (configurável) para a animação aparecer inteira mesmo quando o mapa carrega rápido.
 - **O jogador volta ao último mapa** em que estava ao entrar ou recarregar (F5), sem carregar o mapa ativo antes. A única exceção é **"Ativar mapa"** (menu ⋮), que leva a mesa toda: quem está conectado vai na hora, e quem está offline entra no mapa ativo quando conectar. Enviar jogadores pelo Navegador nunca mexe no último mapa dos outros.
 - **Aviso de jogador sem token**: aparece quando um jogador está num mapa sem o token dele, com um botão para colocar o token ali.
 - Indicador de quem está em cada mapa, inclusive dentro de pastas fechadas.
@@ -86,7 +86,7 @@ O Navegador **pré-carrega** o mapa no navegador do jogador antes da troca. Quem
 ## Configurações do módulo
 Em **Configurar Definições → Navegador de Mundos**:
 - jogadores voltam ao último mapa;
-- tela de transição (com fundo, só o nome ou desligada);
+- tela de transição (com fundo, só o nome ou desligada), texto de carregamento padrão e tempo mínimo da tela;
 - tamanho da área de chegada em volta da bandeira (0 a 5 anéis de casas);
 - ocultar a barra de navegação de cenas para o mestre e/ou para os jogadores;
 - ocultar a aba Cenas da barra lateral.

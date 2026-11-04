@@ -1,5 +1,18 @@
 # Changelog
 
+## v4.5.2
+
+### Novidades
+- **Textos da tela de transição por mapa**: em "Nota, etiquetas e música" há uma parte nova, "Tela de transição", com **Título** (em branco: o nome do mapa), **Comentário** abaixo do título (aceita mais de uma linha), **Texto de carregamento** e a opção de não mostrar texto de carregamento. O botão **Ver prévia** mostra a tela para o mestre com o que está no formulário, sem trocar de mapa.
+- **Texto de carregamento padrão** (nova configuração): troca o "Carregando" de todos os mapas que não têm um texto próprio.
+- **Tempo mínimo da transição** (nova configuração, padrão 3 segundos): mesmo que o mapa carregue rápido, a tela fica esse tempo depois de escurecer, e a animação aparece inteira. Se o mapa demorar mais, ela fica até ele terminar.
+- A animação ficou mais cuidada: o nome e a linha só começam a surgir quando a tela já está escurecendo (antes podiam rodar com a tela ainda transparente), a miniatura ao fundo faz uma leve aproximação e, na saída, o nome some junto com a tela, sem desaparecer de repente.
+
+### Correções
+- **Tela de transição (carregando)**: voltou a aparecer quando o mestre envia um jogador ou quando ele passa por um portal.
+  - Ela dependia de um recurso do navegador que fica parado quando a aba do Foundry está em segundo plano. Nesses casos a tela era criada, mas ficava transparente, e o jogador via o mapa trocar sem transição.
+  - A tela também podia sumir antes da hora: o módulo via o mapa antigo ainda "pronto" e liberava a tela enquanto o novo ainda carregava. Agora ela espera o mapa de destino terminar de desenhar (até 80 segundos; se travar, some sozinha em 90).
+
 ## v4.5.1
 
 Correções a partir da segunda revisão externa (2/11/2026).

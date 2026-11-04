@@ -1,12 +1,12 @@
 // Navegador de Mundos — viagem: troca de mapa do jogador, transição, música,
 // casas livres, portais, ponto de chegada e o "último mapa" de cada jogador
 
-import { ID, t, esc, cfg, emitir, souMestreAtivo, estado, enfileirar, esperarCanvas } from "./nucleo.js";
+import { ID, t, esc, cfg, emitir, souMestreAtivo, estado, enfileirar, esperarCanvas, esperarCena } from "./nucleo.js";
 
 const ENTRADA_TRANSICAO_MS = 550;       // tempo do escurecimento antes de trocar o mapa (acompanha o CSS)
 const SAIDA_TRANSICAO_MS = 700;         // tempo do clareamento antes de tirar a tela do DOM
-const TEMPO_MIN_TRANSICAO_MS = 1600;    // a tela fica pelo menos isso, para dar tempo de ler o nome
 const SEGURANCA_TRANSICAO_MS = 90_000;  // se algo travar, a tela some sozinha depois disso
+const LIMITE_TROCA_MS = 80_000;         // espera máxima pelo mapa novo terminar de desenhar (menor que a segurança)
 const PAN_CHEGADA_MS = 600;             // duração do movimento da câmera até o token ao chegar
 const FADE_MUSICA_MS = 1500;            // a música local abaixa aos poucos antes de parar
 const ESPERA_FAIXAS_MS = 10_000;        // quanto o jogador espera o mestre mandar as faixas da playlist
@@ -18,20 +18,38 @@ const FOLGA_PORTAL_MS = 2000;           // depois de um portal, o mesmo token fi
 
 // Tela de transição: nome do mapa (o nome que os jogadores veem) enquanto ele carrega
 const telas = new WeakMap(); // tela -> { inicio, seguranca } (sem pendurar propriedades no elemento)
-async function mostrarTransicao(cena) {
+// Textos da tela: cada mapa pode ter título, comentário e texto de carregamento próprios
+// (em "Nota, etiquetas e música"). Em branco, usa o nome do mapa e o texto padrão das configurações.
+export function textosTransicao(cena, mudar = {}) {
+  const f = { ...(cena.getFlag(ID, "transicao") ?? {}), ...mudar };
+  const limpo = v => (typeof v === "string" ? v.trim() : "");
+  return {
+    titulo: limpo(f.titulo) || cena.navName || cena.name,
+    comentario: limpo(f.comentario),
+    carregando: f.semCarregando ? "" : (limpo(f.carregando) || limpo(cfg("transicaoTexto")) || t("Transicao.Carregando"))
+  };
+}
+
+async function mostrarTransicao(cena, mudar = {}) {
   const modo = cfg("transicao");
-  if (modo === "off") return null;
+  if (modo === "off" && !mudar.previa) return null;
+  const tx = textosTransicao(cena, mudar);
   const el = document.createElement("div");
   el.className = "nm-transicao";
-  const fundo = modo === "fundo" && cena.thumb
+  const fundo = modo !== "nome" && cena.thumb
     ? `<div class="nm-transicao-fundo" style="background-image:url('${esc(cena.thumb)}')"></div>` : "";
   el.innerHTML = `${fundo}
-    <div class="nm-transicao-nome">${esc(cena.navName || cena.name)}</div>
+    <div class="nm-transicao-nome">${esc(tx.titulo)}</div>
     <div class="nm-transicao-linha"></div>
-    <div class="nm-transicao-sub">${esc(t("Transicao.Carregando"))}</div>`;
+    ${tx.comentario ? `<div class="nm-transicao-comentario">${esc(tx.comentario)}</div>` : ""}
+    ${tx.carregando ? `<div class="nm-transicao-sub">${esc(tx.carregando)}</div>` : ""}`;
   document.body.appendChild(el);
   telas.set(el, { inicio: Date.now(), seguranca: setTimeout(() => el.remove(), SEGURANCA_TRANSICAO_MS) });
-  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("visivel")));
+  // Força o navegador a calcular a tela escondida e só então liga o escurecimento.
+  // (Antes dependia de requestAnimationFrame, que não roda com a aba do Foundry em segundo plano:
+  // a tela ficava transparente e o jogador via o mapa trocar sem a transição.)
+  void el.offsetHeight;
+  el.classList.add("visivel", "ativa"); // "ativa" fica até o fim: o nome não some de repente na saída
   await new Promise(r => setTimeout(r, ENTRADA_TRANSICAO_MS));
   return el;
 }
@@ -39,12 +57,27 @@ async function mostrarTransicao(cena) {
 async function esconderTransicao(el) {
   const dados = el && telas.get(el);
   if (!dados) return;
-  const falta = TEMPO_MIN_TRANSICAO_MS - (Date.now() - dados.inicio);
+  // Mesmo que o mapa carregue rápido, a animação roda inteira: a tela fica pelo menos o tempo
+  // escolhido nas configurações, contado a partir do momento em que ela termina de escurecer.
+  const minimo = ENTRADA_TRANSICAO_MS + Math.max(1, Number(cfg("transicaoTempo")) || 3) * 1000;
+  const falta = minimo - (Date.now() - dados.inicio);
   if (falta > 0) await new Promise(r => setTimeout(r, falta));
   clearTimeout(dados.seguranca);
   telas.delete(el);
   el.classList.remove("visivel");
   setTimeout(() => el.remove(), SAIDA_TRANSICAO_MS);
+}
+
+// Prévia para o mestre (botão em "Nota, etiquetas e música"): mostra a tela com os textos do
+// formulário, sem trocar de mapa. Um clique na tela fecha antes da hora.
+export async function previaTransicao(cena, mudar = {}) {
+  const tela = await mostrarTransicao(cena, { ...mudar, previa: true });
+  if (!tela) return;
+  await new Promise(r => {
+    const tm = setTimeout(r, Math.max(1, Number(cfg("transicaoTempo")) || 3) * 1000);
+    tela.addEventListener("click", () => { clearTimeout(tm); r(); }, { once: true });
+  });
+  esconderTransicao(tela);
 }
 
 // Ao chegar, seleciona o token do jogador e centraliza a câmera nele
@@ -65,10 +98,11 @@ export function irPara(sceneId, { transicao = false } = {}) {
     if (!cena) return;
     await esperarCanvas();
     if (canvas.scene?.id === cena.id) return;
-    const tela = transicao ? await mostrarTransicao(cena) : null;
+    const tela = transicao ? await mostrarTransicao(cena).catch(err => { console.warn(`${ID} | tela de transição`, err); return null; }) : null;
     try {
+      const desenhou = esperarCena(cena.id, LIMITE_TROCA_MS); // antes do view(), para não perder o aviso
       await cena.view();
-      await esperarCanvas();
+      await desenhou;
     } finally {
       esconderTransicao(tela);
     }

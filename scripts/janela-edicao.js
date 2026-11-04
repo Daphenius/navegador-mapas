@@ -1,7 +1,7 @@
 // Navegador de Mundos — janela: menus e edição (grupos, mapas, pastas, favoritos, detalhes, ponto de chegada)
 
 import { ID, MAX_RECENTES_GUARDADOS, t, esc, cfg, comparar, ordenar, etiquetasDe, pedirTexto, esperarCanvas } from "./nucleo.js";
-import { escolherPontoNoCanvas } from "./viagem.js";
+import { escolherPontoNoCanvas, previaTransicao } from "./viagem.js";
 
 const REABRIR_MENU_MS = 400; // clicar no ⋮ que acabou de fechar o menu não o abre de novo
 
@@ -218,6 +218,8 @@ export const Edicao = Base => class extends Base {
     const m = cena.getFlag(ID, "musica") ?? {};
     const playlists = game.playlists.contents.slice().sort((a, b) => comparar(a.name, b.name));
     const op = (v, rotulo, atual) => `<option value="${esc(v)}" ${v === atual ? "selected" : ""}>${esc(rotulo)}</option>`;
+    const tr = cena.getFlag(ID, "transicao") ?? {};
+    const padraoCarregando = (cfg("transicaoTexto") ?? "").trim() || t("Transicao.Carregando");
     const content = `<div class="nm-form">
         <div class="form-group stacked"><label>${t("Detalhes.Nota")}</label>
           <textarea name="nota" placeholder="${esc(t("Detalhes.NotaExemplo"))}">${esc(cena.getFlag(ID, "nota") ?? "")}</textarea>
@@ -231,16 +233,38 @@ export const Edicao = Base => class extends Base {
           <select name="modo">${op("local", t("Detalhes.ModoLocal"), m.modo ?? "local")}${op("todos", t("Detalhes.ModoTodos"), m.modo)}</select></div>
         <div class="form-group"><label>${t("Detalhes.PararOutras")}</label><input type="checkbox" name="pararOutras" ${m.pararOutras ? "checked" : ""}></div>
         <p class="hint">${t("Detalhes.MusicaDica")}</p>
+        <fieldset class="nm-tela-textos"><legend><i class="fa-solid fa-film"></i> ${t("Detalhes.Tela")}</legend>
+          <div class="form-group"><label>${t("Detalhes.TelaTitulo")}</label>
+            <input type="text" name="trTitulo" value="${esc(tr.titulo ?? "")}" placeholder="${esc(cena.navName || cena.name)}"></div>
+          <div class="form-group stacked"><label>${t("Detalhes.TelaComentario")}</label>
+            <textarea name="trComentario" rows="2" placeholder="${esc(t("Detalhes.TelaComentarioExemplo"))}">${esc(tr.comentario ?? "")}</textarea></div>
+          <div class="form-group"><label>${t("Detalhes.TelaCarregando")}</label>
+            <input type="text" name="trCarregando" value="${esc(tr.carregando ?? "")}" placeholder="${esc(padraoCarregando)}"></div>
+          <div class="form-group"><label>${t("Detalhes.TelaSemCarregando")}</label><input type="checkbox" name="trSem" ${tr.semCarregando ? "checked" : ""}></div>
+          <p class="hint">${t("Detalhes.TelaDica")}</p>
+          <button type="button" class="nm-previa"><i class="fa-solid fa-play"></i> ${t("Detalhes.TelaPrevia")}</button>
+        </fieldset>
       </div>`;
+    const lerTela = f => ({
+      titulo: f.trTitulo.value.trim(), comentario: f.trComentario.value.trim(),
+      carregando: f.trCarregando.value.trim(), semCarregando: f.trSem.checked
+    });
     const r = await foundry.applications.api.DialogV2.prompt({
       window: { title: t("Detalhes.Titulo", { mapa: cena.name }) },
       position: { width: 480 },
       content,
+      render: (ev, dialogo) => {
+        const el = dialogo.element;
+        el?.querySelector(".nm-previa")?.addEventListener("click", ev2 => {
+          const form = ev2.currentTarget.form ?? el.querySelector("form");
+          if (form) previaTransicao(cena, lerTela(form.elements));
+        });
+      },
       ok: {
         label: t("Geral.Salvar"), icon: "fa-solid fa-check",
         callback: (ev, botao) => {
           const f = botao.form.elements;
-          return { nota: f.nota.value, etiquetas: f.etiquetas.value, playlist: f.playlist.value, modo: f.modo.value, pararOutras: f.pararOutras.checked };
+          return { nota: f.nota.value, etiquetas: f.etiquetas.value, playlist: f.playlist.value, modo: f.modo.value, pararOutras: f.pararOutras.checked, tela: lerTela(f) };
         }
       },
       rejectClose: false
@@ -248,7 +272,9 @@ export const Edicao = Base => class extends Base {
     if (!r || typeof r !== "object") return;
 
     const etiquetas = [...new Set(r.etiquetas.split(",").map(s => s.trim().toLowerCase()).filter(Boolean))];
-    const flags = { nota: r.nota.trim(), etiquetas };
+    const tela = r.tela;
+    const temTela = tela.titulo || tela.comentario || tela.carregando || tela.semCarregando;
+    const flags = { nota: r.nota.trim(), etiquetas, transicao: temTela ? tela : null };
     const pl = game.playlists.get(r.playlist);
     // Só a playlist: as faixas são lidas dela na hora de tocar
     flags.musica = pl ? { playlist: pl.id, modo: r.modo, pararOutras: r.pararOutras } : null;

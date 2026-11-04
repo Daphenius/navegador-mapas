@@ -141,7 +141,15 @@
       "ModoLocal": "Only whoever enters the map",
       "ModoTodos": "Everyone (the GM plays the playlist)",
       "PararOutras": "Stop other playlists (\"everyone\" mode)",
-      "MusicaDica": "Uses Foundry's native playlists, including those created by Audio Console. \"Only whoever enters\" plays in the browser of whoever is on the map and stops when they leave."
+      "MusicaDica": "Uses Foundry's native playlists, including those created by Audio Console. \"Only whoever enters\" plays in the browser of whoever is on the map and stops when they leave.",
+      "Tela": "Transition screen",
+      "TelaTitulo": "Title",
+      "TelaComentario": "Comment (below the title)",
+      "TelaComentarioExemplo": "Mist covers the twisted trees...",
+      "TelaCarregando": "Loading text",
+      "TelaSemCarregando": "No loading text",
+      "TelaDica": "Blank uses the map name and the default text from the settings. The comment can have more than one line.",
+      "TelaPrevia": "Preview (click the screen to close)"
     },
     "Chegada": {
       "Clique": "Click the map where tokens should arrive. Esc or right-click cancels.",
@@ -171,6 +179,14 @@
         "Fundo": "Name over a blurred thumbnail",
         "SoNome": "Name only",
         "Off": "Off"
+      },
+      "TransicaoTexto": {
+        "Nome": "Loading text (default)",
+        "Dica": "Text shown at the bottom of the transition screen (blank: \"Loading\"). Each map can have its own in \"Note, tags and music\"."
+      },
+      "TransicaoTempo": {
+        "Nome": "Minimum transition time (seconds)",
+        "Dica": "The transition screen stays at least this long, even if the map loads quickly, so the animation plays in full. If the map takes longer, it stays until loading finishes."
       },
       "OcultarNavMestre": {
         "Nome": "Hide the scene navigation bar for the GM",

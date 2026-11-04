@@ -55,6 +55,22 @@ export function esperarCanvas(limite = LIMITE_CANVAS_MS) {
   });
 }
 
+// Espera o mapa CERTO terminar de desenhar. Registra o gancho antes da troca, então pega o
+// canvasReady mesmo que o Foundry termine de desenhar antes do cena.view() devolver.
+// (esperarCanvas sozinho podia ver o mapa antigo ainda "pronto" e liberar cedo demais.)
+export function esperarCena(sceneId, limite = LIMITE_CANVAS_MS) {
+  return new Promise(resolve => {
+    let id = null;
+    const tm = setTimeout(() => { Hooks.off("canvasReady", id); resolve(false); }, limite);
+    id = Hooks.on("canvasReady", c => {
+      if ((c?.scene ?? canvas.scene)?.id !== sceneId) return;
+      Hooks.off("canvasReady", id);
+      clearTimeout(tm);
+      setTimeout(() => resolve(true), FOLGA_CANVAS_MS);
+    });
+  });
+}
+
 let fila = Promise.resolve();
 export function enfileirar(fn) {
   const p = fila.then(fn, fn);
@@ -73,6 +89,15 @@ export function registrarConfig({ aoMudarNav, aoAtalho, aoMudarArea }) {
     name: "NM.Config.Transicao.Nome", hint: "NM.Config.Transicao.Dica",
     scope: "world", config: true, type: String, default: "fundo",
     choices: { fundo: "NM.Config.Transicao.Fundo", nome: "NM.Config.Transicao.SoNome", off: "NM.Config.Transicao.Off" }
+  });
+  reg("transicaoTexto", {
+    name: "NM.Config.TransicaoTexto.Nome", hint: "NM.Config.TransicaoTexto.Dica",
+    scope: "world", config: true, type: String, default: ""
+  });
+  reg("transicaoTempo", {
+    name: "NM.Config.TransicaoTempo.Nome", hint: "NM.Config.TransicaoTempo.Dica",
+    scope: "world", config: true, type: Number, default: 3,
+    range: { min: 1, max: 8, step: 0.5 }
   });
   reg("areaChegada", {
     name: "NM.Config.AreaChegada.Nome", hint: "NM.Config.AreaChegada.Dica",
