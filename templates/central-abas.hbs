@@ -1,0 +1,8 @@
+<nav class="nm-cc-abas">
+  <div class="nm-cc-selo"><i class="fa-solid fa-map-location-dot"></i><span>{{textos.modulo}}</span></div>
+  {{#each abas}}
+  <button type="button" class="nm-cc-aba {{#if ativa}}ativa{{/if}}" data-action="aba" data-aba="{{id}}">
+    <i class="fa-solid {{icone}}"></i><span>{{rotulo}}</span>{{#if pendentes}}<b class="nm-cc-ponto">{{pendentes}}</b>{{/if}}
+  </button>
+  {{/each}}
+</nav>

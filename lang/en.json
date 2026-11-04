@@ -175,7 +175,7 @@
       },
       "Transicao": {
         "Nome": "Transition screen",
-        "Dica": "When the GM sends a player (or they use a portal). \"Native\" uses Foundry's animation: the map's own (Configure Scene > Transition Animation) or, if the map has none, the one chosen below. The other options show the module's own screen, with title, comment and loading text.",
+        "Dica": "When the GM sends a player (or they use a portal). \"Native\" uses Foundry's animation: the map's own (Configure Scene > Transition Animation) or, if the map has none, the one chosen below. If the native one cannot be used, the module's own screen is shown instead. The other options show the module's own screen, with title, comment and loading text.",
         "Fundo": "Name over a blurred thumbnail",
         "SoNome": "Name only",
         "Off": "Off",
@@ -212,6 +212,56 @@
       "AreaChegada": {
         "Nome": "Arrival area size",
         "Dica": "How many rings of spaces around the arrival flag make up the area where tokens arrive, one token per space, from the center outwards. 0 = only the flag's space (other tokens go to the nearest free spaces). 1 = the flag and the spaces around it (7 hexes or 9 squares). 2 = 19 hexes or 25 squares. When the area is full, the next tokens go to the nearest free space and the GM is warned."
+      }
+    },
+    "Central": {
+      "Titulo": "World Navigator · Settings",
+      "Menu": {
+        "Nome": "Settings Hub",
+        "Botao": "Open the Settings Hub",
+        "Dica": "All World Navigator options, grouped by subject: players, arrival, transition and map bars."
+      },
+      "Aba": {
+        "Geral": "General",
+        "Transicao": "Transition",
+        "Interface": "Bars and tabs"
+      },
+      "Lema": {
+        "Geral": "Where players enter and where tokens arrive.",
+        "Transicao": "What a player sees when sent to another map or going through a portal.",
+        "Interface": "What stays hidden on screen, so the Navigator handles maps on its own."
+      },
+      "Secao": {
+        "Jogadores": "Players",
+        "Chegada": "Arrival point",
+        "Modo": "Transition type",
+        "Nativa": "Foundry native transition",
+        "Tela": "Module screen",
+        "Barra": "Scene navigation bar",
+        "Lateral": "Sidebar"
+      },
+      "DependeNativa": "Applies when the transition type is Foundry's native one.",
+      "DependeTela": "Does not apply with the transition turned off.",
+      "Salvar": "Save changes",
+      "Cancelar": "Cancel",
+      "SemMudancas": "No changes",
+      "Mudancas": "{n} unsaved change(s)",
+      "Salvo": "{n} setting(s) saved.",
+      "Falhou": "Could not save: {lista}. The others were saved. See the console (F12).",
+      "Erro": {
+        "Numero": "{nome}: enter a number.",
+        "Min": "{nome}: the minimum is {min}.",
+        "Max": "{nome}: the maximum is {max}.",
+        "Invalido": "{nome}: invalid value."
+      },
+      "Conflito": {
+        "Titulo": "Settings changed elsewhere",
+        "Texto": "These settings were changed in another window while the Hub was open:",
+        "Pergunta": "Overwrite them with your values?"
+      },
+      "NaoSalvo": {
+        "Titulo": "Unsaved changes",
+        "Texto": "There are {n} unsaved change(s). Close anyway?"
       }
     }
   }

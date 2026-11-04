@@ -1,0 +1,37 @@
+<section class="nm-cc-corpo">
+  {{#if aba}}
+  <header class="nm-cc-cab">
+    <h2><i class="fa-solid {{aba.icone}}"></i> {{aba.rotulo}}</h2>
+    <p>{{aba.lema}}</p>
+  </header>
+  {{/if}}
+  {{#each secoes}}
+  <div class="nm-cc-secao">
+    <h3><i class="fa-solid {{icone}}"></i> {{titulo}}</h3>
+    {{#each campos}}
+    <div class="nm-cc-campo {{#if alterado}}alterado{{/if}} {{#if desligado}}desligado{{/if}} {{#if booleano}}curto{{/if}}">
+      <div class="nm-cc-rotulo">
+        <label for="nm-cc-{{chave}}">{{nome}}</label>
+        {{#if dica}}<p class="nm-cc-dica">{{dica}}</p>{{/if}}
+        {{#if depende}}<p class="nm-cc-depende"><i class="fa-solid fa-link"></i> {{depende}}</p>{{/if}}
+      </div>
+      <div class="nm-cc-controle">
+        {{#if booleano}}
+          <label class="nm-cc-chave"><input type="checkbox" id="nm-cc-{{chave}}" data-chave="{{chave}}" {{#if valor}}checked{{/if}} {{#if desligado}}disabled{{/if}}><span class="nm-cc-trilho"></span></label>
+        {{else if lista}}
+          <select id="nm-cc-{{chave}}" data-chave="{{chave}}" {{#if desligado}}disabled{{/if}}>
+            {{#each opcoes}}<option value="{{valor}}" {{#if selecionado}}selected{{/if}}>{{rotulo}}</option>{{/each}}
+          </select>
+        {{else if faixa}}
+          <div class="nm-cc-faixa"><input type="range" id="nm-cc-{{chave}}" data-chave="{{chave}}" min="{{min}}" max="{{max}}" step="{{passo}}" value="{{valor}}" {{#if desligado}}disabled{{/if}}><output data-saida="{{chave}}">{{valor}}</output></div>
+        {{else if numero}}
+          <input type="number" id="nm-cc-{{chave}}" data-chave="{{chave}}" value="{{valor}}" step="any" {{#if desligado}}disabled{{/if}}>
+        {{else}}
+          <input type="text" id="nm-cc-{{chave}}" data-chave="{{chave}}" value="{{valor}}" {{#if desligado}}disabled{{/if}}>
+        {{/if}}
+      </div>
+    </div>
+    {{/each}}
+  </div>
+  {{/each}}
+</section>

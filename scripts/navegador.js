@@ -10,6 +10,7 @@
 //   socket.js        canal entre mestre e jogadores
 //   janela*.js       janela do mestre (desenho, edição, envio)
 //   barra.js         botão na navegação de cenas e opções de ocultar
+//   central*.js      Central de Configurações (janela das opções do módulo)
 //   api.js           API para macros e outros módulos
 
 import { ID, cfg, souMestreAtivo, esperarCanvas, estado, registrarConfig } from "./nucleo.js";
@@ -21,10 +22,12 @@ import { registrarSocket } from "./socket.js";
 import { abrir, NavegadorMapas, TEMPLATES } from "./janela.js";
 import { injetarBotaoNav, aplicarOcultarNav } from "./barra.js";
 import { criarApi } from "./api.js";
+import { registrarCentral } from "./central.js";
 
 Hooks.once("init", () => {
   foundry.applications.handlebars.loadTemplates(Object.values(TEMPLATES));
   interceptarPrimeiroDesenho();
+  registrarCentral();
   registrarConfig({ aoMudarNav: aplicarOcultarNav, aoAtalho: abrir, aoMudarArea: desenharChegada });
 });
 

@@ -49,7 +49,7 @@ Só o mestre usa o Navegador. Abra de qualquer um destes jeitos:
 - **Grupos salvos** ("Grupo A", "Grupo B") para quando a party se divide. Arraste o grupo até o mapa.
 - **Pré-carregamento**: o mapa carrega no navegador do jogador antes da troca.
 - **Levar o token junto**: o token do personagem vai para o **ponto de chegada** do mapa (veja abaixo), e vários tokens enviados juntos não se empilham.
-- **Transição nativa**: ao enviar um jogador, o mapa troca com a animação de transição do próprio Foundry 14 (a do mapa de destino ou uma padrão escolhida nas configurações).
+- **Transição nativa**: ao enviar um jogador, o mapa troca com a animação de transição do próprio Foundry 14 (a do mapa de destino ou uma padrão escolhida nas configurações). Se a nativa não puder ser usada, a tela própria do módulo entra no lugar, e o motivo fica registrado no console (F12).
 - **Tela de transição própria** (opcional): o jogador vê o nome do mapa (o nome que os jogadores enxergam) sobre a miniatura desfocada enquanto o mapa carrega. Em **Nota, etiquetas e música** de cada mapa dá para trocar o título, escrever um comentário que aparece abaixo dele e mudar (ou tirar) o texto de carregamento, com um botão de prévia. A tela fica um tempo mínimo (configurável) para a animação aparecer inteira mesmo quando o mapa carrega rápido.
 - **O jogador volta ao último mapa** em que estava ao entrar ou recarregar (F5), sem carregar o mapa ativo antes. A única exceção é **"Ativar mapa"** (menu ⋮), que leva a mesa toda: quem está conectado vai na hora, e quem está offline entra no mapa ativo quando conectar. Enviar jogadores pelo Navegador nunca mexe no último mapa dos outros.
 - **Aviso de jogador sem token**: aparece quando um jogador está num mapa sem o token dele, com um botão para colocar o token ali.
@@ -85,7 +85,7 @@ Os gatilhos e portais que existiam até a v3.3 saíram deste módulo. Agora fica
 O Navegador **pré-carrega** o mapa no navegador do jogador antes da troca. Quem tira da memória os mapas que ficaram sem uso é o próprio Foundry, sozinho, como em qualquer mundo.
 
 ## Configurações do módulo
-Em **Configurar Definições → Navegador de Mundos**:
+Em **Configurar Definições → Navegador de Mundos → Abrir a Central de Configurações** (só o mestre). A Central é uma janela própria, em três abas (Geral, Transição, Barras e abas), e só grava o que mudou quando você clica em **Salvar alterações**:
 - jogadores voltam ao último mapa;
 - transição (nativa do Foundry, tela própria com fundo, só o nome ou desligada), transição nativa padrão e duração, texto de carregamento padrão e tempo mínimo da tela;
 - tamanho da área de chegada em volta da bandeira (0 a 5 anéis de casas);
@@ -107,7 +107,7 @@ api.portal(token, sceneId, regiaoUuid);       // leva um token (e os jogadores d
 
 ## Testes
 
-A pasta `testes/` tem testes automáticos da lógica (transferência de tokens, envios simultâneos, respostas fora de ordem, casas livres, área de chegada, música e socket), rodando num Foundry simulado. Para rodar, na pasta do módulo: `node --test`. Eles não substituem testar no Foundry real e não vão no pacote do módulo.
+A pasta `testes/` tem testes automáticos da lógica (transferência de tokens, envios simultâneos, respostas fora de ordem, casas livres, área de chegada, música, socket, transição no envio e Central de Configurações), rodando num Foundry simulado. Para rodar, na pasta do módulo: `node --test`. Eles não substituem testar no Foundry real e não vão no pacote do módulo.
 
 ## Licença
 

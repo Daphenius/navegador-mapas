@@ -1,7 +1,7 @@
 // Navegador de Mundos — viagem: troca de mapa do jogador, transição, música,
 // casas livres, portais, ponto de chegada e o "último mapa" de cada jogador
 
-import { ID, t, esc, cfg, emitir, souMestreAtivo, estado, enfileirar, esperarCanvas, esperarCena, ehNenhuma } from "./nucleo.js";
+import { ID, t, esc, cfg, emitir, souMestreAtivo, estado, enfileirar, esperarCanvas, esperarCena, ehNenhuma, tiposTransicaoNativa } from "./nucleo.js";
 
 const ENTRADA_TRANSICAO_MS = 550;       // tempo do escurecimento antes de trocar o mapa (acompanha o CSS)
 const SAIDA_TRANSICAO_MS = 700;         // tempo do clareamento antes de tirar a tela do DOM
@@ -30,9 +30,11 @@ export function textosTransicao(cena, mudar = {}) {
   };
 }
 
-async function mostrarTransicao(cena, mudar = {}) {
+// reserva: a transição nativa não pôde ser usada, então a tela do módulo entra no lugar dela
+async function mostrarTransicao(cena, mudar = {}, { reserva = false } = {}) {
   const modo = cfg("transicao");
-  if ((modo === "off" || modo === "nativa") && !mudar.previa) return null;
+  if (modo === "off" && !mudar.previa) return null;
+  if (modo === "nativa" && !mudar.previa && !reserva) return null;
   const tx = textosTransicao(cena, mudar);
   const el = document.createElement("div");
   el.className = "nm-transicao";
@@ -93,15 +95,30 @@ function focarToken() {
 }
 
 // Transição nativa para um envio: a do próprio mapa (Configurar mapa > Transition Animation);
-// se o mapa não tiver uma, a escolhida nas configurações do módulo.
-// Passada no view(), ela toca mesmo que o mapa esteja marcado como "Active Only".
-export function transicaoNativa(cena) {
-  const doMapa = cena.transition ?? cena._source?.transition ?? {};
-  if (!ehNenhuma(doMapa.type)) return { type: doMapa.type, duration: Number(doMapa.duration) || 1500 };
-  const tipo = cfg("transicaoNativaTipo");
-  if (ehNenhuma(tipo)) return null;
-  return { type: tipo, duration: Number(cfg("transicaoNativaDuracao")) || 1500 };
+// se o mapa não tiver uma (ou tiver um tipo que este Foundry não conhece), a escolhida nas
+// configurações do módulo. Passada no view(), ela toca mesmo que o mapa esteja "Active Only".
+// Devolve também o motivo quando não há nenhuma que sirva, para o registro no console.
+function tipoNativoValido(tipo) {
+  if (ehNenhuma(tipo) || typeof tipo !== "string") return false;
+  const tipos = Object.keys(tiposTransicaoNativa());
+  // Sem lista para conferir, deixa o Foundry decidir (se ele recusar, a tela do módulo entra)
+  return !tipos.length || tipos.includes(tipo);
 }
+const duracaoNativa = v => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : 1500; };
+
+export function resolverTransicaoNativa(cena) {
+  const motivos = [];
+  const doMapa = cena.transition ?? cena._source?.transition ?? {};
+  if (tipoNativoValido(doMapa.type)) return { transicao: { type: doMapa.type, duration: duracaoNativa(doMapa.duration) }, origem: "mapa" };
+  motivos.push(ehNenhuma(doMapa.type) ? "o mapa não tem transição própria" : `o tipo "${doMapa.type}" do mapa não existe neste Foundry`);
+  let tipo = null, duracao = null;
+  try { tipo = cfg("transicaoNativaTipo"); duracao = cfg("transicaoNativaDuracao"); }
+  catch { motivos.push("a configuração de transição nativa não está registrada"); return { transicao: null, motivo: motivos.join("; ") }; }
+  if (tipoNativoValido(tipo)) return { transicao: { type: tipo, duration: duracaoNativa(duracao) }, origem: "configuração" };
+  motivos.push(ehNenhuma(tipo) ? "nenhuma transição padrão escolhida nas configurações" : `o tipo padrão "${tipo}" não existe neste Foundry`);
+  return { transicao: null, motivo: motivos.join("; ") };
+}
+export const transicaoNativa = cena => resolverTransicaoNativa(cena).transicao;
 
 export function irPara(sceneId, { transicao = false } = {}) {
   return enfileirar(async () => {
@@ -109,20 +126,35 @@ export function irPara(sceneId, { transicao = false } = {}) {
     if (!cena) return;
     await esperarCanvas();
     if (canvas.scene?.id === cena.id) return;
-    const nativa = transicao && cfg("transicao") === "nativa" ? transicaoNativa(cena) : null;
-    const tela = transicao && !nativa ? await mostrarTransicao(cena).catch(err => { console.warn(`${ID} | tela de transição`, err); return null; }) : null;
+    const modo = transicao ? cfg("transicao") : "off";
+    const telaPropria = reserva => mostrarTransicao(cena, {}, { reserva })
+      .catch(err => { console.warn(`${ID} | transição: a tela do módulo falhou`, err); return null; });
+    let nativa = null, tela = null;
+    if (modo === "nativa") {
+      const r = resolverTransicaoNativa(cena);
+      nativa = r.transicao;
+      if (nativa) console.debug(`${ID} | transição: nativa "${nativa.type}" (${nativa.duration} ms, vinda de: ${r.origem}) para "${cena.name}"`);
+      else console.warn(`${ID} | transição: nativa indisponível para "${cena.name}" (${r.motivo}); usando a tela do módulo`);
+    }
+    // Tela do módulo: nos modos "fundo" e "nome", ou no lugar da nativa quando ela não pode ser usada
+    if (transicao && modo !== "off" && !nativa) tela = await telaPropria(modo === "nativa");
+    let desenhou = null;
     try {
-      const desenhou = esperarCena(cena.id, LIMITE_TROCA_MS); // antes do view(), para não perder o aviso
+      desenhou = esperarCena(cena.id, LIMITE_TROCA_MS); // antes do view(), para não perder o aviso
       if (nativa) {
         try { await cena.view({ transition: nativa }); }
         catch (err) {
-          // Se o Foundry recusar a opção, troca de mapa do jeito normal (com a transição do mapa, se houver)
-          console.warn(`${ID} | transição nativa recusada; trocando sem ela`, err);
-          if (canvas.scene?.id !== cena.id) await cena.view();
+          // O Foundry recusou a animação: se o mapa ainda não trocou, mostra a tela do módulo e troca do jeito normal
+          console.warn(`${ID} | transição: o Foundry recusou a nativa "${nativa.type}"; usando a tela do módulo`, err);
+          if (canvas.scene?.id !== cena.id) {
+            tela = await telaPropria(true);
+            await cena.view();
+          }
         }
       } else await cena.view();
       await desenhou;
     } finally {
+      desenhou?.cancelar(); // se a troca falhou, não fica esperando o mapa desenhar
       esconderTransicao(tela);
     }
     focarToken();

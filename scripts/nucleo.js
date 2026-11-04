@@ -1,5 +1,7 @@
 // Navegador de Mundos — núcleo: constantes, configurações e utilitários usados por todos os arquivos
 
+import { CHAVES_CENTRAL } from "./central-mapa.js";
+
 export const ID = "navegador-mapas";
 export const SOCKET = `module.${ID}`;
 export const TEMPO_PRECARGA = 120_000;     // espera máxima pelo pré-carregamento e pela confirmação de chegada
@@ -58,8 +60,10 @@ export function esperarCanvas(limite = LIMITE_CANVAS_MS) {
 // Espera o mapa CERTO terminar de desenhar. Registra o gancho antes da troca, então pega o
 // canvasReady mesmo que o Foundry termine de desenhar antes do cena.view() devolver.
 // (esperarCanvas sozinho podia ver o mapa antigo ainda "pronto" e liberar cedo demais.)
+// cancelar(): para de esperar na hora (usado quando a troca falha, para não deixar o gancho pendurado).
 export function esperarCena(sceneId, limite = LIMITE_CANVAS_MS) {
-  return new Promise(resolve => {
+  let cancelar = () => {};
+  const p = new Promise(resolve => {
     let id = null;
     const tm = setTimeout(() => { Hooks.off("canvasReady", id); resolve(false); }, limite);
     id = Hooks.on("canvasReady", c => {
@@ -68,7 +72,10 @@ export function esperarCena(sceneId, limite = LIMITE_CANVAS_MS) {
       clearTimeout(tm);
       setTimeout(() => resolve(true), FOLGA_CANVAS_MS);
     });
+    cancelar = () => { Hooks.off("canvasReady", id); clearTimeout(tm); resolve(false); };
   });
+  p.cancelar = cancelar;
+  return p;
 }
 
 let fila = Promise.resolve();
@@ -79,8 +86,19 @@ export function enfileirar(fn) {
 }
 
 // Transição nativa do Foundry 14 (a mesma de "Configurar mapa" > Transition Animation).
-// Os tipos são lidos do próprio Foundry, para não depender de nomes fixos.
+// Os tipos são lidos do próprio Foundry, para não depender de nomes fixos:
+// primeiro do registro oficial (CONFIG.Canvas.sceneTransitions, que é de onde o Foundry tira o
+// filtro de cada animação); se ele não existir, das opções do campo do mapa.
 export function tiposTransicaoNativa() {
+  try {
+    const reg = globalThis.CONFIG?.Canvas?.sceneTransitions;
+    if (reg && typeof reg === "object") {
+      const doRegistro = Object.fromEntries(Object.entries(reg)
+        .filter(([, v]) => v && typeof v === "object")
+        .map(([k, v]) => [typeof v.id === "string" && v.id ? v.id : k, v.label ?? k]));
+      if (Object.keys(doRegistro).length) return doRegistro;
+    }
+  } catch { /* cai para o campo do mapa */ }
   try {
     const campo = foundry.documents.Scene.schema.getField("transition.type");
     let ch = campo?.choices;
@@ -95,7 +113,9 @@ export const ehNenhuma = tipo => !tipo || /^none$/i.test(tipo);
 
 // Configurações e atalho (chamado no init). aoMudarNav: reaplica as opções de ocultar
 export function registrarConfig({ aoMudarNav, aoAtalho, aoMudarArea }) {
-  const reg = (chave, dados) => game.settings.register(ID, chave, dados);
+  // O que aparece na Central de Configurações (central-mapa.js) sai da lista padrão do Foundry.
+  // O registro é o mesmo (id, escopo, tipo, padrão, opções, onChange), então os valores salvos ficam.
+  const reg = (chave, dados) => game.settings.register(ID, chave, CHAVES_CENTRAL.has(chave) ? { ...dados, config: false } : dados);
   reg("lembrarLugar", {
     name: "NM.Config.LembrarLugar.Nome", hint: "NM.Config.LembrarLugar.Dica",
     scope: "world", config: true, type: Boolean, default: true

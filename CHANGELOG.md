@@ -1,5 +1,32 @@
 # Changelog
 
+## v4.7.0
+
+### Novidade: Central de Configurações
+- As opções do módulo saíram da lista comprida do Foundry e ganharam uma janela própria, simples, em três abas: **Geral** (jogadores e ponto de chegada), **Transição** e **Barras e abas**. Ela abre em *Configurar Definições > Navegador de Mundos > Abrir a Central de Configurações* (só o mestre).
+- Interruptores, listas e barras deslizantes com o valor ao lado. Opções que dependem de outra ficam apagadas, com o motivo escrito (por exemplo, a transição nativa padrão só vale quando o tipo escolhido é a nativa).
+- Nada é gravado até clicar em **Salvar alterações**. O rodapé mostra quantas mudanças estão pendentes, e fechar a janela com mudanças não salvas pergunta antes.
+- As configurações são as mesmas de antes, com os mesmos valores: nada precisa ser refeito. A janela acompanha o tema claro ou escuro do Foundry.
+
+Também traz as correções da terceira revisão externa (4/11/2026), no envio com a transição nativa.
+
+### Correções
+- **Jogador sem nenhuma transição no modo "Transição nativa do Foundry"**: quando a nativa não podia ser usada, o mapa trocava seco, sem animação nenhuma. A tela do módulo era chamada como reserva, mas ela mesma se recusava a aparecer porque o modo escolhido era "nativa". Agora a tela do módulo (título, comentário e miniatura) entra no lugar sempre que:
+  - nem o mapa nem as configurações têm um tipo de transição que este Foundry conheça;
+  - o Foundry recusa a animação na hora da troca (antes o mapa trocava sem nada).
+- **Tipos de transição conferidos com o Foundry**: a lista agora vem do registro oficial do Foundry 14 (`CONFIG.Canvas.sceneTransitions`); se ele não existir, das opções do campo do mapa, como antes. Um tipo que não está na lista não é mais mandado para o Foundry: se o problema é o tipo do mapa, vale a transição padrão das configurações; se é a padrão, vale a tela do módulo.
+- Quando a troca de mapa falha, o módulo para de esperar o mapa desenhar na hora (ficava com um gancho pendurado por até 80 segundos).
+
+### Diagnóstico
+- O console do jogador (F12) passa a dizer o que aconteceu, sempre começando com `navegador-mapas | transição:`. Aviso quando a nativa não pôde ser usada, com o motivo (mapa sem transição, tipo desconhecido, recusada pelo Foundry), e uma linha de depuração com o tipo, a duração e de onde ela veio quando foi usada.
+
+### Não mudou
+- Tela do módulo nos modos "Nome com a miniatura" e "Só o nome", modo "Desligada", prévia, API, transferência de tokens, música e permissões.
+- **Ver** e **Ativar** no menu do mapa continuam sendo os comandos do próprio Foundry. A transição do Navegador aparece para o jogador que é enviado (ou passa por um portal), não para o mestre.
+
+### Por dentro
+- 21 testes novos (56 no total): 6 da Central de Configurações (nenhuma opção perdida, registro igual, validação, textos nas duas línguas) e 15 para os modos nativa, tela do módulo e desligada, incluindo as falhas da nativa e o caminho do socket que o jogador recebe (envio individual, grupo e portal chegam pelo mesmo caminho). 8 deles falhavam na v4.6.0.
+
 ## v4.6.0
 
 ### Novidades

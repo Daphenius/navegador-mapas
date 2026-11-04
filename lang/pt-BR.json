@@ -175,7 +175,7 @@
       },
       "Transicao": {
         "Nome": "Tela de transição",
-        "Dica": "Quando o mestre envia um jogador (ou ele passa por um portal). \"Nativa\" usa a animação do Foundry: a do próprio mapa (Configurar mapa > Transition Animation) ou, se o mapa não tiver, a escolhida abaixo. As outras opções mostram a tela própria do módulo, com título, comentário e texto de carregamento.",
+        "Dica": "Quando o mestre envia um jogador (ou ele passa por um portal). \"Nativa\" usa a animação do Foundry: a do próprio mapa (Configurar mapa > Transition Animation) ou, se o mapa não tiver, a escolhida abaixo. Se a nativa não puder ser usada, entra a tela do módulo. As outras opções mostram a tela própria do módulo, com título, comentário e texto de carregamento.",
         "Fundo": "Nome com a miniatura desfocada ao fundo",
         "SoNome": "Só o nome",
         "Off": "Desligada",
@@ -212,6 +212,56 @@
       "AreaChegada": {
         "Nome": "Tamanho da área de chegada",
         "Dica": "Quantos anéis de casas em volta da bandeira de chegada formam a área onde os tokens chegam, um token por casa, do centro para fora. 0 = só a casa da bandeira (os outros tokens ficam nas casas livres mais próximas). 1 = a bandeira e as casas em volta (7 hexágonos ou 9 quadrados). 2 = 19 hexágonos ou 25 quadrados. Com a área cheia, os próximos tokens ficam na casa livre mais perto, e o mestre é avisado."
+      }
+    },
+    "Central": {
+      "Titulo": "Navegador de Mundos · Configurações",
+      "Menu": {
+        "Nome": "Central de Configurações",
+        "Botao": "Abrir a Central de Configurações",
+        "Dica": "Todas as opções do Navegador de Mundos, organizadas por assunto: jogadores, chegada, transição e barras de mapas."
+      },
+      "Aba": {
+        "Geral": "Geral",
+        "Transicao": "Transição",
+        "Interface": "Barras e abas"
+      },
+      "Lema": {
+        "Geral": "Onde os jogadores entram e onde os tokens chegam.",
+        "Transicao": "O que o jogador vê quando é enviado para outro mapa ou passa por um portal.",
+        "Interface": "O que fica escondido na tela, para o Navegador cuidar dos mapas sozinho."
+      },
+      "Secao": {
+        "Jogadores": "Jogadores",
+        "Chegada": "Ponto de chegada",
+        "Modo": "Tipo de transição",
+        "Nativa": "Transição nativa do Foundry",
+        "Tela": "Tela do módulo",
+        "Barra": "Barra de navegação de mapas",
+        "Lateral": "Barra lateral"
+      },
+      "DependeNativa": "Vale quando o tipo de transição é a nativa do Foundry.",
+      "DependeTela": "Não vale com a transição desligada.",
+      "Salvar": "Salvar alterações",
+      "Cancelar": "Cancelar",
+      "SemMudancas": "Nenhuma alteração",
+      "Mudancas": "{n} alteração(ões) não salva(s)",
+      "Salvo": "{n} configuração(ões) salva(s).",
+      "Falhou": "Não consegui gravar: {lista}. As outras foram salvas. Veja o console (F12).",
+      "Erro": {
+        "Numero": "{nome}: digite um número.",
+        "Min": "{nome}: o mínimo é {min}.",
+        "Max": "{nome}: o máximo é {max}.",
+        "Invalido": "{nome}: valor inválido."
+      },
+      "Conflito": {
+        "Titulo": "Configurações mudaram por fora",
+        "Texto": "Estas configurações foram mudadas em outra janela enquanto a Central estava aberta:",
+        "Pergunta": "Gravar os seus valores por cima?"
+      },
+      "NaoSalvo": {
+        "Titulo": "Alterações não salvas",
+        "Texto": "Há {n} alteração(ões) não salva(s). Fechar mesmo assim?"
       }
     }
   }
