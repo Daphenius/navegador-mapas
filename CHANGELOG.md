@@ -1,5 +1,14 @@
 # Changelog
 
+## v4.6.0
+
+### Novidades
+- **Transição nativa do Foundry no envio**: nova opção "Transição nativa do Foundry" em *Tela de transição* (passa a ser o padrão em mundos que nunca mexeram nessa opção). Quando o mestre envia um jogador ou ele passa por um portal, o mapa troca com a animação do próprio Foundry 14:
+  - a do mapa de destino, se ele tiver uma em *Configurar mapa > Transition Animation* (toca mesmo com "Active Only" marcado);
+  - se o mapa não tiver, a **Transição nativa padrão** escolhida nas configurações do módulo, com a duração definida lá.
+- A lista de transições é lida do próprio Foundry, então novos tipos aparecem sozinhos.
+- A tela própria do módulo (título, comentário e texto de carregamento) continua disponível nas opções "Nome com a miniatura" e "Só o nome". O botão de prévia continua mostrando essa tela.
+
 ## v4.5.2
 
 ### Novidades

@@ -78,6 +78,21 @@ export function enfileirar(fn) {
   return p;
 }
 
+// Transição nativa do Foundry 14 (a mesma de "Configurar mapa" > Transition Animation).
+// Os tipos são lidos do próprio Foundry, para não depender de nomes fixos.
+export function tiposTransicaoNativa() {
+  try {
+    const campo = foundry.documents.Scene.schema.getField("transition.type");
+    let ch = campo?.choices;
+    if (typeof ch === "function") ch = ch();
+    if (Array.isArray(ch)) ch = Object.fromEntries(ch.map(k => [k, k]));
+    if (!ch || typeof ch !== "object") return {};
+    // alguns campos guardam { valor: { label } } em vez de { valor: "rótulo" }
+    return Object.fromEntries(Object.entries(ch).map(([k, v]) => [k, typeof v === "string" ? v : (v?.label ?? k)]));
+  } catch { return {}; }
+}
+export const ehNenhuma = tipo => !tipo || /^none$/i.test(tipo);
+
 // Configurações e atalho (chamado no init). aoMudarNav: reaplica as opções de ocultar
 export function registrarConfig({ aoMudarNav, aoAtalho, aoMudarArea }) {
   const reg = (chave, dados) => game.settings.register(ID, chave, dados);
@@ -85,11 +100,29 @@ export function registrarConfig({ aoMudarNav, aoAtalho, aoMudarArea }) {
     name: "NM.Config.LembrarLugar.Nome", hint: "NM.Config.LembrarLugar.Dica",
     scope: "world", config: true, type: Boolean, default: true
   });
+  const tipos = tiposTransicaoNativa();
+  const temNativa = Object.keys(tipos).some(k => !ehNenhuma(k));
   reg("transicao", {
     name: "NM.Config.Transicao.Nome", hint: "NM.Config.Transicao.Dica",
-    scope: "world", config: true, type: String, default: "fundo",
-    choices: { fundo: "NM.Config.Transicao.Fundo", nome: "NM.Config.Transicao.SoNome", off: "NM.Config.Transicao.Off" }
+    scope: "world", config: true, type: String, default: temNativa ? "nativa" : "fundo",
+    choices: {
+      ...(temNativa ? { nativa: "NM.Config.Transicao.Nativa" } : {}),
+      fundo: "NM.Config.Transicao.Fundo", nome: "NM.Config.Transicao.SoNome", off: "NM.Config.Transicao.Off"
+    }
   });
+  if (temNativa) {
+    const padrao = Object.keys(tipos).find(k => /fade/i.test(k)) ?? Object.keys(tipos).find(k => !ehNenhuma(k));
+    reg("transicaoNativaTipo", {
+      name: "NM.Config.TransicaoNativaTipo.Nome", hint: "NM.Config.TransicaoNativaTipo.Dica",
+      scope: "world", config: true, type: String, default: padrao,
+      choices: Object.fromEntries(Object.entries(tipos).filter(([k]) => !ehNenhuma(k)))
+    });
+    reg("transicaoNativaDuracao", {
+      name: "NM.Config.TransicaoNativaDuracao.Nome", hint: "NM.Config.TransicaoNativaDuracao.Dica",
+      scope: "world", config: true, type: Number, default: 1500,
+      range: { min: 250, max: 10000, step: 250 }
+    });
+  }
   reg("transicaoTexto", {
     name: "NM.Config.TransicaoTexto.Nome", hint: "NM.Config.TransicaoTexto.Dica",
     scope: "world", config: true, type: String, default: ""

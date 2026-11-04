@@ -175,10 +175,19 @@
       },
       "Transicao": {
         "Nome": "Transition screen",
-        "Dica": "When the GM sends a player to another map, shows the map's name (the name players see) while it loads.",
+        "Dica": "When the GM sends a player (or they use a portal). \"Native\" uses Foundry's animation: the map's own (Configure Scene > Transition Animation) or, if the map has none, the one chosen below. The other options show the module's own screen, with title, comment and loading text.",
         "Fundo": "Name over a blurred thumbnail",
         "SoNome": "Name only",
-        "Off": "Off"
+        "Off": "Off",
+        "Nativa": "Foundry native transition (recommended)"
+      },
+      "TransicaoNativaTipo": {
+        "Nome": "Default native transition",
+        "Dica": "Used when the destination map has no transition of its own in its configuration."
+      },
+      "TransicaoNativaDuracao": {
+        "Nome": "Native transition duration (ms)",
+        "Dica": "Applies to the default transition above. Maps with their own transition use their own duration."
       },
       "TransicaoTexto": {
         "Nome": "Loading text (default)",

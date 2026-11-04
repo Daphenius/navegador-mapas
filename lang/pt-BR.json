@@ -175,10 +175,19 @@
       },
       "Transicao": {
         "Nome": "Tela de transição",
-        "Dica": "Quando o mestre envia um jogador para outro mapa, mostra o nome do mapa (o nome que os jogadores veem) enquanto ele carrega.",
+        "Dica": "Quando o mestre envia um jogador (ou ele passa por um portal). \"Nativa\" usa a animação do Foundry: a do próprio mapa (Configurar mapa > Transition Animation) ou, se o mapa não tiver, a escolhida abaixo. As outras opções mostram a tela própria do módulo, com título, comentário e texto de carregamento.",
         "Fundo": "Nome com a miniatura desfocada ao fundo",
         "SoNome": "Só o nome",
-        "Off": "Desligada"
+        "Off": "Desligada",
+        "Nativa": "Transição nativa do Foundry (recomendada)"
+      },
+      "TransicaoNativaTipo": {
+        "Nome": "Transição nativa padrão",
+        "Dica": "Usada quando o mapa de destino não tem transição própria na configuração dele."
+      },
+      "TransicaoNativaDuracao": {
+        "Nome": "Duração da transição nativa (ms)",
+        "Dica": "Vale para a transição padrão acima. Mapas com transição própria usam a duração deles."
       },
       "TransicaoTexto": {
         "Nome": "Texto de carregamento (padrão)",
