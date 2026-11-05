@@ -7,13 +7,14 @@
 
 const soNativa = { chave: "transicao", quando: v => v === "nativa", texto: "Central.DependeNativa" };
 const soPropria = { chave: "transicao", quando: v => v === "propria", texto: "Central.DependePropria" };
+const soTela = { chave: "transicao", quando: v => v === "fundo" || v === "nome", texto: "Central.DependeSoTela" };
 const comTela = { chave: "transicao", quando: v => v !== "off", texto: "Central.DependeTela" };
 
 export const ABAS_CENTRAL = [
   {
     id: "geral", rotulo: "Central.Aba.Geral", icone: "fa-compass", lema: "Central.Lema.Geral",
     secoes: [
-      { id: "jogadores", titulo: "Central.Secao.Jogadores", icone: "fa-users", campos: [{ chave: "lembrarLugar" }] },
+      { id: "jogadores", titulo: "Central.Secao.Jogadores", icone: "fa-users", campos: [{ chave: "lembrarLugar" }, { chave: "pedidosJogadores" }] },
       { id: "chegada", titulo: "Central.Secao.Chegada", icone: "fa-flag", campos: [{ chave: "areaChegada" }] }
     ]
   },
@@ -21,6 +22,12 @@ export const ABAS_CENTRAL = [
     id: "transicao", rotulo: "Central.Aba.Transicao", icone: "fa-wand-magic-sparkles", lema: "Central.Lema.Transicao",
     secoes: [
       { id: "modo", titulo: "Central.Secao.Modo", icone: "fa-shuffle", campos: [{ chave: "transicao" }] },
+      { id: "tela", titulo: "Central.Secao.Tela", icone: "fa-image", campos: [
+        { chave: "transicaoSempre", depende: soTela },
+        { chave: "transicaoMestre", depende: soTela },
+        { chave: "transicaoTexto", depende: comTela },
+        { chave: "transicaoTempo", depende: comTela }
+      ] },
       { id: "propria", titulo: "Central.Secao.Propria", icone: "fa-palette", nota: "Central.NotaPropria", estado: "propria",
         botao: { acao: "testarTransicao", rotulo: "Central.Testar", icone: "fa-play" }, campos: [
         { chave: "transicaoPropriaNome" },
@@ -34,10 +41,6 @@ export const ABAS_CENTRAL = [
       { id: "nativa", titulo: "Central.Secao.Nativa", icone: "fa-film", campos: [
         { chave: "transicaoNativaTipo", depende: soNativa },
         { chave: "transicaoNativaDuracao", depende: soNativa }
-      ] },
-      { id: "tela", titulo: "Central.Secao.Tela", icone: "fa-image", campos: [
-        { chave: "transicaoTexto", depende: comTela },
-        { chave: "transicaoTempo", depende: comTela }
       ] }
     ]
   },

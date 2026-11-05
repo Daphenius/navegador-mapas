@@ -120,11 +120,16 @@ export function registrarConfig({ aoMudarNav, aoAtalho, aoMudarArea }) {
     name: "NM.Config.LembrarLugar.Nome", hint: "NM.Config.LembrarLugar.Dica",
     scope: "world", config: true, type: Boolean, default: true
   });
+  reg("pedidosJogadores", {
+    name: "NM.Config.PedidosJogadores.Nome", hint: "NM.Config.PedidosJogadores.Dica",
+    scope: "world", config: true, type: String, default: "perguntar",
+    choices: { perguntar: "NM.Config.PedidosJogadores.Perguntar", permitir: "NM.Config.PedidosJogadores.Permitir", recusar: "NM.Config.PedidosJogadores.Recusar" }
+  });
   const tipos = tiposTransicaoNativa();
   const temNativa = Object.keys(tipos).some(k => !ehNenhuma(k));
   reg("transicao", {
     name: "NM.Config.Transicao.Nome", hint: "NM.Config.Transicao.Dica",
-    scope: "world", config: true, type: String, default: temNativa ? "nativa" : "fundo",
+    scope: "world", config: true, type: String, default: "fundo",
     choices: {
       ...(temNativa ? { nativa: "NM.Config.Transicao.Nativa" } : {}),
       propria: "NM.Config.Transicao.PropriaModo",
@@ -180,6 +185,14 @@ export function registrarConfig({ aoMudarNav, aoAtalho, aoMudarArea }) {
       scope: "world", config: true, type: Number, default: 60, range: { min: 0, max: 100, step: 5 }
     });
   }
+  reg("transicaoSempre", {
+    name: "NM.Config.TransicaoSempre.Nome", hint: "NM.Config.TransicaoSempre.Dica",
+    scope: "world", config: true, type: Boolean, default: true
+  });
+  reg("transicaoMestre", {
+    name: "NM.Config.TransicaoMestre.Nome", hint: "NM.Config.TransicaoMestre.Dica",
+    scope: "world", config: true, type: Boolean, default: true
+  });
   reg("transicaoTexto", {
     name: "NM.Config.TransicaoTexto.Nome", hint: "NM.Config.TransicaoTexto.Dica",
     scope: "world", config: true, type: String, default: ""

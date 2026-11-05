@@ -251,6 +251,21 @@
       "TransicaoPropriaDuracao": {
         "Nome": "Duração (ms)",
         "Dica": "Quanto tempo a transição personalizada leva."
+      },
+      "TransicaoSempre": {
+        "Nome": "Mostrar em toda troca de mapa",
+        "Dica": "A tela aparece sempre que o mapa muda, venha de onde vier: enviado pelo Navegador, Ver ou Ativar do Foundry, portais e botões de outros módulos (como as cidades do Objetos Vivos). Desligado: só quando o Navegador envia o jogador."
+      },
+      "TransicaoMestre": {
+        "Nome": "Mostrar também para o mestre",
+        "Dica": "O mestre também vê a tela ao trocar de mapa. Um clique na tela fecha na hora."
+      },
+      "PedidosJogadores": {
+        "Nome": "Pedidos dos jogadores para trocar de mapa",
+        "Dica": "Uma macro (ou um comando no console) pode pedir, em nome de um jogador, para ele ir a outro mapa ou levar o próprio token. O que fazer com esses pedidos. Envios feitos pelo mestre e ações do Objetos Vivos não passam por aqui.",
+        "Perguntar": "Perguntar ao mestre (recomendado)",
+        "Permitir": "Aceitar sempre",
+        "Recusar": "Recusar sempre"
       }
     },
     "Central": {
@@ -311,7 +326,12 @@
       "TesteFalhou": "Não consegui tocar o teste aqui. Escolha a transição personalizada e envie um jogador para um mapa para ver; o motivo está no console (F12).",
       "DependePropria": "Vale quando o tipo de transição é a personalizada. Escolhida como \"Transição nativa padrão\", ela usa a duração da nativa.",
       "PropriaOk": "Registrada entre as transições do Foundry neste computador.",
-      "PropriaFalhou": "Não foi registrada no Foundry: {motivo}. Enquanto isso, quem for enviado vê a tela do módulo."
+      "PropriaFalhou": "Não foi registrada no Foundry: {motivo}. Enquanto isso, quem for enviado vê a tela do módulo.",
+      "DependeSoTela": "Vale com a tela do módulo (nome com a miniatura ao fundo ou só o nome)."
+    },
+    "Pedido": {
+      "Titulo": "Pedido de troca de mapa",
+      "Pergunta": "<strong>{nome}</strong> pede para ir para <strong>{mapa}</strong>. Enviar?"
     }
   }
 }

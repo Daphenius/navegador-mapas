@@ -15,7 +15,7 @@
 
 import { ID, cfg, souMestreAtivo, esperarCanvas, estado, registrarConfig } from "./nucleo.js";
 import {
-  irPara, gravarLugar, liberarGravacao, desenharChegada, atualizarMusicaLocal,
+  irPara, gravarLugar, liberarGravacao, desenharChegada, atualizarMusicaLocal, aoIniciarMapa, aoMapaPronto,
   limparFixasOffline, interceptarPrimeiroDesenho, reservas
 } from "./viagem.js";
 import { registrarSocket } from "./socket.js";
@@ -24,10 +24,12 @@ import { injetarBotaoNav, aplicarOcultarNav } from "./barra.js";
 import { criarApi } from "./api.js";
 import { registrarCentral } from "./central.js";
 import { registrarTransicaoPropria } from "./transicao-propria.js";
+import { injetarEstiloTela } from "./tela-estilo.js";
 
 Hooks.once("init", () => {
   foundry.applications.handlebars.loadTemplates(Object.values(TEMPLATES));
   interceptarPrimeiroDesenho();
+  injetarEstiloTela(); // em todos os navegadores (mestre e jogadores), antes de qualquer troca de mapa
   registrarTransicaoPropria(); // antes das configurações, para aparecer nas listas de transição
   registrarCentral();
   registrarConfig({ aoMudarNav: aplicarOcultarNav, aoAtalho: abrir, aoMudarArea: desenharChegada });
@@ -60,7 +62,11 @@ Hooks.on("userConnected", (user, conectado) => {
   if (conectado) setTimeout(() => app.rendered && app.ping(), PING_APOS_CONEXAO_MS);
 });
 
-Hooks.on("canvasReady", () => {
+// Tela de transição em toda troca de mapa (venha de onde vier)
+Hooks.on("canvasInit", c => aoIniciarMapa(c));
+
+Hooks.on("canvasReady", c => {
+  aoMapaPronto(c);
   gravarLugar();
   desenharChegada();
   atualizarMusicaLocal();

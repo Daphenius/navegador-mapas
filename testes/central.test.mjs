@@ -42,7 +42,9 @@ test("toda configuração com nome está na Central e saiu da lista padrão do F
 test("o registro continua o mesmo: escopo do mundo, tipo, padrão e onChange", () => {
   const registros = registrar();
   for (const k of CHAVES_CENTRAL) assert.equal(registros.get(k).scope, "world", k);
-  assert.equal(registros.get("transicao").default, "nativa");
+  assert.equal(registros.get("transicao").default, "fundo", "o padrão é a tela do módulo: miniatura desfocada, nome e Carregando");
+  assert.equal(registros.get("transicaoSempre").default, true);
+  assert.equal(registros.get("transicaoMestre").default, true);
   assert.equal(registros.get("transicaoTempo").default, 3);
   assert.equal(registros.get("areaChegada").type, Number);
   for (const k of ["areaChegada", "ocultarNavMestre", "ocultarNavJogadores", "ocultarAbaCenas"])

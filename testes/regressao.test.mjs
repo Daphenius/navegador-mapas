@@ -200,10 +200,81 @@ test("socket: mensagem com id extra (remetente forjado) é descartada", async ()
   // u2 tenta se passar pelo mestre: emite (dados, "gm") e o servidor acrescenta "u2"
   await __socket({ acao: "pedir-envio", userIds: ["u1", "u3"], sceneId: "B" }, "gm", "u2");
   assert.equal(pedidos.length, 0);
-  // pedido legítimo de u2: só vale para ele mesmo
+  // pedido de u2 com a lista de outros jogadores: só vale para ele mesmo (com os pedidos aceitos sem pergunta)
+  game.settings.get = (m, k) => (k === "pedidosJogadores" ? "permitir" : undefined);
   await __socket({ acao: "pedir-envio", userIds: ["u1", "u3"], sceneId: "B" }, "u2");
   assert.deepEqual(pedidos, [[["u2"], "B"]]);
 });
+
+// ---------- Auditoria de 4/11/2026: o jogador escolhia o próprio destino sem o mestre saber
+// Antes, qualquer jogador podia mandar { acao: "pedir-envio", sceneId } pelo socket (ou pela API) e o
+// mestre ativo o enviava na hora, para qualquer mapa do mundo. O mesmo valia para "portal", em que até
+// o "confirmar" vinha na mensagem do jogador.
+async function pedidoDeJogador({ regra, resposta = true } = {}) {
+  const B = criarCena("B");
+  const { users } = preparar({ cenas: [B] });
+  users.push(jogador("u2", null, "A"));
+  const pedidos = [], perguntas = [], portais = [];
+  const { estado } = await import("../scripts/nucleo.js");
+  estado.app = { enviarVarios: (ids, s, o) => { pedidos.push([ids, s]); if (o?.semToken) portais.push(s); }, aoSocket() {} };
+  game.settings.get = (m, k) => (k === "pedidosJogadores" ? regra : undefined);
+  foundry.applications.api.DialogV2 = { confirm: async o => { perguntas.push(o.content); return typeof resposta === "function" ? resposta() : resposta; } };
+  registrarSocket();
+  return { pedidos, perguntas, portais, B };
+}
+
+test("pedido de envio de um jogador: por padrão o mestre é perguntado, e só vai se ele aceitar", async () => {
+  let r = await pedidoDeJogador({ regra: undefined, resposta: false });
+  await __socket({ acao: "pedir-envio", sceneId: "B" }, "u2");
+  assert.equal(r.perguntas.length, 1, "o mestre recebe a pergunta");
+  assert.ok(r.perguntas[0].includes("Jogador u2") && r.perguntas[0].includes("Mapa B"));
+  assert.deepEqual(r.pedidos, [], "recusado: ninguém é enviado");
+  r = await pedidoDeJogador({ regra: "perguntar", resposta: true });
+  await __socket({ acao: "pedir-envio", sceneId: "B" }, "u2");
+  assert.deepEqual(r.pedidos, [[["u2"], "B"]], "aceito: só quem pediu");
+});
+
+test("pedido de envio de um jogador: 'recusar sempre' nem pergunta; 'aceitar sempre' vai direto", async () => {
+  const aviso = console.warn; console.warn = () => {};
+  let r = await pedidoDeJogador({ regra: "recusar" });
+  await __socket({ acao: "pedir-envio", sceneId: "B" }, "u2");
+  console.warn = aviso;
+  assert.deepEqual([r.perguntas.length, r.pedidos.length], [0, 0]);
+  r = await pedidoDeJogador({ regra: "permitir" });
+  await __socket({ acao: "pedir-envio", sceneId: "B" }, "u2");
+  assert.deepEqual([r.perguntas.length, r.pedidos.length], [0, 1]);
+});
+
+test("pedido de envio: vários pedidos do mesmo jogador abrem uma pergunta só", async () => {
+  let soltar;
+  const r = await pedidoDeJogador({ regra: "perguntar", resposta: () => new Promise(ok => { soltar = () => ok(true); }) });
+  const primeiro = __socket({ acao: "pedir-envio", sceneId: "B" }, "u2");
+  await __socket({ acao: "pedir-envio", sceneId: "B" }, "u2");
+  await __socket({ acao: "pedir-envio", sceneId: "B" }, "u2");
+  assert.equal(r.perguntas.length, 1);
+  soltar(); await primeiro;
+  assert.equal(r.pedidos.length, 1);
+});
+
+test("pedido de envio vindo do mestre (outro mestre conectado) não é perguntado", async () => {
+  const r = await pedidoDeJogador({ regra: "perguntar", resposta: false });
+  await __socket({ acao: "pedir-envio", userIds: ["u2"], sceneId: "B" }, "gm");
+  assert.deepEqual([r.perguntas.length, r.pedidos.length], [0, 1]);
+});
+
+test("portal pedido por um jogador: o 'confirmar: false' da mensagem não dispensa o mestre", async () => {
+  const r = await pedidoDeJogador({ regra: "perguntar", resposta: false });
+  const A = criarCena("A"), ator = criarAtor("x");
+  const tk = adicionarToken(A, { actorId: "x" });
+  tk.actor = { testUserPermission: u => u.id === "u2" };
+  globalThis.fromUuid = async () => tk;
+  await __socket({ acao: "portal", tokenUuid: "Scene.A.Token.t", sceneId: "B", confirmar: false }, "u2");
+  await new Promise(ok => setTimeout(ok, 5));
+  assert.equal(r.perguntas.length, 1, "o mestre é perguntado");
+  assert.equal(tk.parent.id, "A", "recusado: o token não saiu do mapa");
+  assert.equal(r.B.criados, 0);
+});
+
 
 // ---------- Área de chegada (configuração do mundo)
 async function chegarVarios(cena, n, config) {

@@ -235,3 +235,107 @@ test("personalizada recusada pelo Foundry na troca: a tela do módulo entra e o 
   assert.equal(telas.length, 1);
   assert.equal(canvas.scene.id, "B");
 });
+
+// ---------- 4.10.0: a tela aparece em toda troca de mapa, venha de onde vier
+// (Ver/Ativar do Foundry, portais, botões de outros módulos: nada disso passa pelo envio do Navegador)
+function trocaPorFora({ config = {}, jogador = true, thumbB = true } = {}) {
+  const A = cenaViagem("A"), B = cenaViagem("B", { flags: { transicao: { comentario: "Cheiro de sal" } } });
+  if (!thumbB) { B.thumb = null; B.background = { src: "fundo-B.webp" }; }
+  preparar({ cenas: [A, B], config: { transicao: "fundo", transicaoSempre: true, transicaoMestre: true, transicaoTempo: 1, ...config }, jogador });
+  viagem.zerarTrocaDeMapa();
+  canvas.scene = A; viagem.aoMapaPronto(canvas);   // o jogador já estava no mapa A
+  return { A, B };
+}
+const outroMapa = async B => { canvas.scene = B; viagem.aoIniciarMapa(canvas); const naTela = telas.length; viagem.aoMapaPronto(canvas); return naTela; };
+
+test("toda troca: mapa trocado por fora do Navegador mostra a tela, com a miniatura, o nome e Carregando", async () => {
+  const { B } = trocaPorFora();
+  assert.equal(await outroMapa(B), 1, "a tela entra quando o Foundry começa a montar o mapa novo");
+  const html = telas[0].innerHTML;
+  assert.ok(html.includes("thumb-B.webp") && html.includes("Mapa B") && html.includes("Carregando") && html.includes("Cheiro de sal"));
+  assert.equal(telas[0].className, "nm-transicao imediata", "aparece de uma vez: o mapa já está trocando");
+});
+
+test("toda troca: a primeira carga e o mesmo mapa redesenhado não mostram a tela", async () => {
+  const { A } = trocaPorFora();
+  assert.equal(await outroMapa(A), 0, "mesmo mapa");
+  viagem.zerarTrocaDeMapa();
+  assert.equal(await outroMapa(A), 0, "primeira carga");
+});
+
+test("toda troca: mapa sem miniatura usa a imagem de fundo dele", async () => {
+  const { B } = trocaPorFora({ thumbB: false });
+  await outroMapa(B);
+  assert.ok(telas[0].innerHTML.includes("fundo-B.webp"));
+});
+
+test("toda troca: desligada, só para o mestre desligada e nos modos nativa/desligada não mostra", async () => {
+  for (const [config, jogador] of [[{ transicaoSempre: false }, true], [{ transicaoMestre: false }, false], [{ transicao: "nativa" }, true], [{ transicao: "off" }, true]]) {
+    const { B } = trocaPorFora({ config, jogador });
+    assert.equal(await outroMapa(B), 0, JSON.stringify(config));
+  }
+  const { B } = trocaPorFora({ jogador: false });
+  assert.equal(await outroMapa(B), 1, "o mestre vê, com a opção ligada");
+});
+
+test("toda troca: sem o aviso de início do Foundry, a tela entra quando o mapa fica pronto", async () => {
+  const { B } = trocaPorFora();
+  canvas.scene = B; viagem.aoMapaPronto(canvas);
+  assert.equal(telas.length, 1);
+});
+
+test("toda troca: no envio do Navegador a tela aparece uma vez só", async () => {
+  const { B } = trocaPorFora();
+  // o view() do mapa dispara os mesmos avisos do Foundry no meio do envio
+  const ver = B.view;
+  B.view = async o => { canvas.scene = B; viagem.aoIniciarMapa(canvas); await ver(o); viagem.aoMapaPronto(canvas); };
+  await ir("B");
+  assert.equal(telas.length, 1, "só a tela do envio");
+  assert.equal(canvas.scene.id, "B");
+});
+
+// ---------- Auditoria de 4/11/2026: trocas rápidas de mapa
+test("toda troca: duas trocas seguidas deixam uma tela só, a do mapa que abriu", async () => {
+  const { B } = trocaPorFora();
+  const C = cenaViagem("C");
+  const removidas = [];
+  const criar = document.createElement;
+  document.createElement = () => { const el = criar(); el.remove = () => removidas.push(el); return el; };
+  canvas.scene = B; viagem.aoIniciarMapa(canvas);          // começou a abrir B...
+  canvas.scene = C; viagem.aoIniciarMapa(canvas);          // ...e o mapa mudou de novo antes de B ficar pronto
+  assert.equal(telas.length, 2);
+  assert.deepEqual(removidas, [telas[0]], "a tela de B saiu na hora");
+  assert.ok(telas[1].innerHTML.includes("Mapa C"), "na frente fica o nome do mapa que está abrindo");
+  viagem.aoMapaPronto(canvas);
+  viagem.zerarTrocaDeMapa();
+});
+
+test("toda troca: tela de um mapa que não chegou a abrir não fica na frente de outro", async () => {
+  const { A, B } = trocaPorFora();
+  const removidas = [];
+  const criar = document.createElement;
+  document.createElement = () => { const el = criar(); el.remove = () => removidas.push(el); return el; };
+  canvas.scene = B; viagem.aoIniciarMapa(canvas);
+  canvas.scene = A; viagem.aoMapaPronto(canvas);           // a troca foi cancelada: quem ficou pronto foi o mapa A
+  assert.deepEqual(removidas, [telas[0]]);
+});
+
+// ---------- 4.12.0: o estilo da tela volta a ser posto na página pelo módulo, como na v3.2.0
+test("estilo da tela: o módulo põe na página uma vez só, com as regras da v3.2.0", async () => {
+  const { injetarEstiloTela, CSS_TELA, ID_ESTILO_TELA } = await import("../scripts/tela-estilo.js");
+  const cabeca = [];
+  globalThis.document = {
+    getElementById: id => cabeca.find(e => e.id === id) ?? null,
+    createElement: () => ({}), head: { appendChild: e => cabeca.push(e) }
+  };
+  injetarEstiloTela(); injetarEstiloTela();
+  assert.equal(cabeca.length, 1);
+  assert.equal(cabeca[0].id, ID_ESTILO_TELA);
+  for (const regra of [".nm-transicao.visivel { opacity: 1; }", "filter: blur(14px) brightness(.35)", "animation: nm-surgir 1.4s ease both", "@keyframes nm-pulsar"])
+    assert.ok(cabeca[0].textContent.includes(regra), regra);
+  assert.equal(cabeca[0].textContent, CSS_TELA);
+  // e o arquivo de estilos do módulo não repete essas regras (uma fonte só)
+  const fs = await import("node:fs");
+  const arquivo = fs.readFileSync(new URL("../styles/navegador.css", import.meta.url), "utf8");
+  assert.equal(/\.nm-transicao[ .{-]/.test(arquivo), false);
+});

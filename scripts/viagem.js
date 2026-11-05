@@ -3,6 +3,7 @@
 
 import { ID, t, esc, cfg, emitir, souMestreAtivo, estado, enfileirar, esperarCanvas, esperarCena, ehNenhuma, tiposTransicaoNativa } from "./nucleo.js";
 import { TIPO_PROPRIO, estadoPropria } from "./transicao-propria.js";
+import { injetarEstiloTela } from "./tela-estilo.js";
 
 const ENTRADA_TRANSICAO_MS = 550;       // tempo do escurecimento antes de trocar o mapa (acompanha o CSS)
 const SAIDA_TRANSICAO_MS = 700;         // tempo do clareamento antes de tirar a tela do DOM
@@ -31,28 +32,40 @@ export function textosTransicao(cena, mudar = {}) {
   };
 }
 
-// reserva: a transição nativa não pôde ser usada, então a tela do módulo entra no lugar dela
-async function mostrarTransicao(cena, mudar = {}, { reserva = false } = {}) {
+// Monta a tela e põe na página, já escurecendo. imediata: aparece de uma vez, sem o escurecimento
+// (usada quando o Foundry já começou a trocar de mapa e não há tempo para a entrada suave).
+function criarTela(cena, mudar = {}, { imediata = false } = {}) {
+  injetarEstiloTela();
   const modo = cfg("transicao");
-  if (modo === "off" && !mudar.previa) return null;
-  if ((modo === "nativa" || modo === "propria") && !mudar.previa && !reserva) return null;
   const tx = textosTransicao(cena, mudar);
   const el = document.createElement("div");
-  el.className = "nm-transicao";
-  const fundo = modo !== "nome" && cena.thumb
-    ? `<div class="nm-transicao-fundo" style="background-image:url('${esc(cena.thumb)}')"></div>` : "";
+  el.className = imediata ? "nm-transicao imediata" : "nm-transicao";
+  // miniatura do mapa; se ele não tiver, a própria imagem de fundo
+  // (aspas e parênteses no nome do arquivo quebrariam o url('...') do CSS)
+  const imagem = String(cena.thumb || cena.background?.src || "").replace(/'/g, "%27").replace(/\(/g, "%28").replace(/\)/g, "%29");
+  const fundo = modo !== "nome" && imagem
+    ? `<div class="nm-transicao-fundo" style="background-image:url('${esc(imagem)}')"></div>` : "";
   el.innerHTML = `${fundo}
     <div class="nm-transicao-nome">${esc(tx.titulo)}</div>
     <div class="nm-transicao-linha"></div>
     ${tx.comentario ? `<div class="nm-transicao-comentario">${esc(tx.comentario)}</div>` : ""}
     ${tx.carregando ? `<div class="nm-transicao-sub">${esc(tx.carregando)}</div>` : ""}`;
   document.body.appendChild(el);
-  telas.set(el, { inicio: Date.now(), seguranca: setTimeout(() => el.remove(), SEGURANCA_TRANSICAO_MS) });
+  telas.set(el, { inicio: Date.now(), seguranca: setTimeout(() => el.remove(), SEGURANCA_TRANSICAO_MS), pular: false });
   // Força o navegador a calcular a tela escondida e só então liga o escurecimento.
   // (Antes dependia de requestAnimationFrame, que não roda com a aba do Foundry em segundo plano:
   // a tela ficava transparente e o jogador via o mapa trocar sem a transição.)
   void el.offsetHeight;
-  el.classList.add("visivel", "ativa"); // "ativa" fica até o fim: o nome não some de repente na saída
+  el.classList.add("visivel");
+  return el;
+}
+
+// reserva: a transição nativa não pôde ser usada, então a tela do módulo entra no lugar dela
+async function mostrarTransicao(cena, mudar = {}, { reserva = false } = {}) {
+  const modo = cfg("transicao");
+  if (modo === "off" && !mudar.previa) return null;
+  if ((modo === "nativa" || modo === "propria") && !mudar.previa && !reserva) return null;
+  const el = criarTela(cena, mudar);
   await new Promise(r => setTimeout(r, ENTRADA_TRANSICAO_MS));
   return el;
 }
@@ -62,14 +75,84 @@ async function esconderTransicao(el) {
   if (!dados) return;
   // Mesmo que o mapa carregue rápido, a animação roda inteira: a tela fica pelo menos o tempo
   // escolhido nas configurações, contado a partir do momento em que ela termina de escurecer.
+  // (Um clique do mestre na tela dispensa a espera.)
   const minimo = ENTRADA_TRANSICAO_MS + Math.max(1, Number(cfg("transicaoTempo")) || 3) * 1000;
-  const falta = minimo - (Date.now() - dados.inicio);
-  if (falta > 0) await new Promise(r => setTimeout(r, falta));
+  const fim = dados.inicio + minimo;
+  while (!dados.pular && Date.now() < fim) await new Promise(r => setTimeout(r, Math.min(100, fim - Date.now())));
+  if (!telas.has(el)) return; // já foi fechada por outro caminho
   clearTimeout(dados.seguranca);
   telas.delete(el);
+  el.classList.remove("imediata"); // a saída é sempre suave
+  void el.offsetHeight;
   el.classList.remove("visivel");
   setTimeout(() => el.remove(), SAIDA_TRANSICAO_MS);
 }
+
+// ---------- Tela em toda troca de mapa
+// A tela não depende de quem trocou o mapa: enviado pelo Navegador, "Ver" e "Ativar" do Foundry,
+// um portal, um botão de cidade do Objetos Vivos... Ela acompanha o próprio Foundry: aparece quando
+// ele começa a montar um mapa diferente (canvasInit) e some quando o mapa fica pronto (canvasReady).
+// Quando é o Navegador que está enviando, quem cuida da tela é o irPara, e estes ganchos não fazem nada.
+let viagensEmCurso = 0;   // envios do Navegador em andamento neste navegador
+let ultimoMapaVisto = null;
+let telaDaTroca = null;   // { el, cenaId } da tela que está na frente por causa de uma troca
+
+// Tira uma tela da página na hora (sem esperar o tempo mínimo nem a saída suave)
+function descartarTela(el) {
+  const dados = el && telas.get(el);
+  if (!dados) return;
+  clearTimeout(dados.seguranca);
+  telas.delete(el);
+  el.remove();
+}
+
+function mostraEmTodaTroca() {
+  let modo = "off", sempre = true, mestre = true;
+  try { modo = cfg("transicao"); sempre = cfg("transicaoSempre") !== false; mestre = cfg("transicaoMestre") !== false; } catch { return false; }
+  if (modo !== "fundo" && modo !== "nome") return false;
+  return sempre && (!game.user?.isGM || mestre);
+}
+function telaParaATroca(cena) {
+  const el = criarTela(cena, {}, { imediata: true });
+  // o mestre troca de mapa o tempo todo: um clique fecha a tela sem esperar o tempo mínimo
+  if (game.user?.isGM) el.addEventListener?.("click", () => { const d = telas.get(el); if (d) d.pular = true; });
+  return el;
+}
+// O Foundry começou a montar um mapa
+export function aoIniciarMapa(c) {
+  try {
+    const cena = c?.scene ?? canvas.scene;
+    if (!cena || !ultimoMapaVisto || ultimoMapaVisto === cena.id) return; // primeira carga ou o mesmo mapa redesenhado
+    if (viagensEmCurso > 0 || !mostraEmTodaTroca()) return;
+    if (telaDaTroca) {
+      // Trocas seguidas: a tela do mapa que nem chegou a abrir sai, e entra a do mapa novo.
+      // (Se a tela antiga já saiu sozinha, pelo limite de segurança, é só esquecer.)
+      if (telaDaTroca.cenaId === cena.id && telas.has(telaDaTroca.el)) return;
+      descartarTela(telaDaTroca.el);
+      telaDaTroca = null;
+    }
+    telaDaTroca = { el: telaParaATroca(cena), cenaId: cena.id };
+  } catch (err) { console.warn(`${ID} | transição: a tela da troca de mapa falhou`, err); }
+}
+// O mapa ficou pronto
+export function aoMapaPronto(c) {
+  try {
+    const cena = c?.scene ?? canvas.scene;
+    if (!cena) return;
+    const anterior = ultimoMapaVisto;
+    ultimoMapaVisto = cena.id;
+    if (telaDaTroca) {
+      const { el, cenaId } = telaDaTroca;
+      telaDaTroca = null;
+      if (cenaId === cena.id && telas.has(el)) { esconderTransicao(el); return; }
+      descartarTela(el); // era de outro mapa (troca cancelada no meio): não fica na frente deste
+    }
+    // Reserva: se o aviso de início não chegou (outra versão do Foundry), a tela aparece agora e fica o tempo mínimo
+    if (anterior && anterior !== cena.id && viagensEmCurso === 0 && mostraEmTodaTroca()) esconderTransicao(telaParaATroca(cena));
+  } catch (err) { console.warn(`${ID} | transição: a tela da troca de mapa falhou`, err); }
+}
+// Só para os testes
+export function zerarTrocaDeMapa() { viagensEmCurso = 0; ultimoMapaVisto = null; if (telaDaTroca) descartarTela(telaDaTroca.el); telaDaTroca = null; }
 
 // Prévia para o mestre (botão em "Nota, etiquetas e música"): mostra a tela com os textos do
 // formulário, sem trocar de mapa. Um clique na tela fecha antes da hora.
@@ -119,7 +202,6 @@ export function resolverTransicaoNativa(cena) {
   motivos.push(ehNenhuma(tipo) ? "nenhuma transição padrão escolhida nas configurações" : `o tipo padrão "${tipo}" não existe neste Foundry`);
   return { transicao: null, motivo: motivos.join("; ") };
 }
-export const transicaoNativa = cena => resolverTransicaoNativa(cena).transicao;
 
 // Modo "Transição personalizada": sempre a do módulo, com a duração dela
 export function resolverTransicaoPropria() {
@@ -137,40 +219,46 @@ export function irPara(sceneId, { transicao = false } = {}) {
     if (!cena) return;
     await esperarCanvas();
     if (canvas.scene?.id === cena.id) return;
-    const modo = transicao ? cfg("transicao") : "off";
-    const telaPropria = reserva => mostrarTransicao(cena, {}, { reserva })
-      .catch(err => { console.warn(`${ID} | transição: a tela do módulo falhou`, err); return null; });
-    let nativa = null, tela = null;
-    const pelaPlaca = modo === "nativa" || modo === "propria"; // animações do Foundry, feitas pela placa de vídeo
-    if (pelaPlaca) {
-      const r = modo === "propria" ? resolverTransicaoPropria() : resolverTransicaoNativa(cena);
-      nativa = r.transicao;
-      if (nativa) console.info(`${ID} | transição: nativa "${nativa.type}" (${nativa.duration} ms, vinda de: ${r.origem}) para "${cena.name}"`);
-      else console.warn(`${ID} | transição: nativa indisponível para "${cena.name}" (${r.motivo}); usando a tela do módulo`);
-    }
-    // Tela do módulo: nos modos "fundo" e "nome", ou no lugar da nativa quando ela não pode ser usada
-    if (transicao && modo !== "off" && !nativa) tela = await telaPropria(pelaPlaca);
-    let desenhou = null;
-    try {
-      desenhou = esperarCena(cena.id, LIMITE_TROCA_MS); // antes do view(), para não perder o aviso
-      if (nativa) {
-        try { await cena.view({ transition: nativa }); }
-        catch (err) {
-          // O Foundry recusou a animação: se o mapa ainda não trocou, mostra a tela do módulo e troca do jeito normal
-          console.warn(`${ID} | transição: o Foundry recusou a nativa "${nativa.type}"; usando a tela do módulo`, err);
-          if (canvas.scene?.id !== cena.id) {
-            tela = await telaPropria(true);
-            await cena.view();
-          }
-        }
-      } else await cena.view();
-      await desenhou;
-    } finally {
-      desenhou?.cancelar(); // se a troca falhou, não fica esperando o mapa desenhar
-      esconderTransicao(tela);
-    }
-    focarToken();
+    viagensEmCurso++; // a tela é deste envio: os ganchos de "toda troca de mapa" ficam de fora
+    try { await trocarDeMapa(cena, transicao); } finally { viagensEmCurso--; }
   });
+}
+
+// A troca em si, com a transição escolhida (chamada pelo irPara, um envio de cada vez)
+async function trocarDeMapa(cena, transicao) {
+  const modo = transicao ? cfg("transicao") : "off";
+  const telaPropria = reserva => mostrarTransicao(cena, {}, { reserva })
+    .catch(err => { console.warn(`${ID} | transição: a tela do módulo falhou`, err); return null; });
+  let nativa = null, tela = null;
+  const pelaPlaca = modo === "nativa" || modo === "propria"; // animações do Foundry, feitas pela placa de vídeo
+  if (pelaPlaca) {
+    const r = modo === "propria" ? resolverTransicaoPropria() : resolverTransicaoNativa(cena);
+    nativa = r.transicao;
+    if (nativa) console.info(`${ID} | transição: nativa "${nativa.type}" (${nativa.duration} ms, vinda de: ${r.origem}) para "${cena.name}"`);
+    else console.warn(`${ID} | transição: nativa indisponível para "${cena.name}" (${r.motivo}); usando a tela do módulo`);
+  }
+  // Tela do módulo: nos modos "fundo" e "nome", ou no lugar da nativa quando ela não pode ser usada
+  if (transicao && modo !== "off" && !nativa) tela = await telaPropria(pelaPlaca);
+  let desenhou = null;
+  try {
+    desenhou = esperarCena(cena.id, LIMITE_TROCA_MS); // antes do view(), para não perder o aviso
+    if (nativa) {
+      try { await cena.view({ transition: nativa }); }
+      catch (err) {
+        // O Foundry recusou a animação: se o mapa ainda não trocou, mostra a tela do módulo e troca do jeito normal
+        console.warn(`${ID} | transição: o Foundry recusou a nativa "${nativa.type}"; usando a tela do módulo`, err);
+        if (canvas.scene?.id !== cena.id) {
+          tela = await telaPropria(true);
+          await cena.view();
+        }
+      }
+    } else await cena.view();
+    await desenhou;
+  } finally {
+    desenhou?.cancelar(); // se a troca falhou, não fica esperando o mapa desenhar
+    esconderTransicao(tela);
+  }
+  focarToken();
 }
 
 // O jogador sempre volta para o último mapa em que esteve

@@ -1,5 +1,52 @@
 # Changelog
 
+## v4.12.0
+
+### Tela de transição refeita como era na v3.2.0
+Comparei o código atual com o da v3.2.0 (31/10/2026), a primeira versão publicada, em que a tela funcionava.
+
+- **O que era diferente**: na v3.2.0 o estilo da tela (fundo desfocado, nome, linha e "Carregando") era colocado na página pelo próprio módulo. A partir da v4.2.0 ele passou a vir do arquivo `styles/navegador.css`, carregado pelo Foundry. A v4.5.2 ainda mudou a animação: o nome e a linha começavam invisíveis e dependiam de uma classe a mais para aparecer.
+- **O que voltou**: o estilo da tela é de novo colocado na página pelo módulo (`scripts/tela-estilo.js`), em todos os navegadores, com as regras da v3.2.0 sem alteração: o nome e a linha surgem assim que a tela aparece. O arquivo `styles/navegador.css` não tem mais essas regras (uma fonte só).
+- **O que continua das versões novas**: a tela em toda troca de mapa e para o mestre (4.10.0), o comentário e os textos por mapa, o tempo mínimo configurável e a correção da aba em segundo plano (4.5.2).
+- **Igual à v3.2.0 também**: a montagem da tela e o caminho do envio (o jogador recebe o pedido, a tela escurece, o mapa troca, a tela sai). Não havia diferença aí.
+- Conferido num navegador de verdade com o estilo novo. 1 teste novo (81 no total). Não sei se era essa a causa no seu Foundry: é a única diferença de funcionamento que achei entre as duas versões.
+
+## v4.11.0
+
+Correções de uma auditoria externa (4/11/2026). Cada item diz o arquivo, a causa e o que mudou.
+
+### Segurança (confirmado, com teste que reproduz)
+- **Um jogador podia se mandar para qualquer mapa do mundo sem o mestre saber.** `scripts/socket.js`, ação `pedir-envio`: a mensagem provava quem pedia, mas o destino vinha do jogador e o mestre ativo enviava na hora. Bastava uma linha no console (`api.enviar(meuId, idDeQualquerMapa)`).
+- **O mesmo valia para o portal.** `scripts/socket.js`, ação `portal`: o jogador precisava ser dono do token, mas escolhia o mapa de destino e ainda mandava o próprio `confirmar: false`, dispensando a pergunta ao mestre.
+- **O que mudou**: pedidos que partem de um jogador passam pela nova função `autorizarPedido`. Por padrão o mestre recebe uma pergunta e decide; uma pergunta por jogador de cada vez (pedidos repetidos enquanto ela está aberta são descartados). O `confirmar` da mensagem do jogador não vale mais. Nova configuração **Pedidos dos jogadores para trocar de mapa** (Central › Geral): perguntar ao mestre (padrão), aceitar sempre ou recusar sempre.
+- **Não mudou**: envios feitos pelo mestre, ações do Objetos Vivos (rodam no mestre) e a conferência do remetente real do socket.
+- 5 testes novos em `testes/regressao.test.mjs`; 4 deles falham com o `socket.js` da 4.10.0. O teste antigo do pedido legítimo foi ajustado para a regra "aceitar sempre", porque o comportamento padrão mudou de propósito.
+
+### Trocas rápidas de mapa (confirmado no código, com teste)
+- `scripts/viagem.js`, `aoIniciarMapa` e `aoMapaPronto` (tela em toda troca, da 4.10.0): se o mapa mudasse de novo antes de o primeiro ficar pronto, a tela continuava com o nome do primeiro mapa. E se uma tela saísse sozinha pelo limite de segurança, a troca seguinte ficava sem tela. Agora cada tela guarda de qual mapa é: numa troca seguida a antiga sai na hora e entra a do mapa novo; uma tela de um mapa que não chegou a abrir não fica na frente de outro. 2 testes novos.
+
+### Limpeza
+- Removida a função `transicaoNativa`, que não era mais usada por ninguém.
+
+### Analisado e mantido (sem evidência de defeito)
+- **Transição nativa sem animação visível** (`irPara`, `resolverTransicaoNativa`): a chamada `cena.view({ transition })` segue a API do Foundry 14, e nada no módulo mostra por que a animação não apareceria. Não dá para confirmar nem corrigir sem ver o Foundry rodando; desde a 4.10.0 o padrão é a tela do módulo, que não depende disso.
+- **Transição personalizada** (`transicao-propria.js`): o programa da animação e o contrato do filtro foram conferidos contra o código do `TextureTransitionFilter` do Foundry 14.369. A troca do registro inteiro e a busca do recipiente de transições por vários nomes continuam, porque ainda não se sabe quais desses caminhos o Foundry 14 precisa; tirar sem saber poderia quebrar o que funciona.
+- **Temporizadores da tela**: os envios do Navegador já rodam um de cada vez (fila), e cada tela tem os próprios temporizadores, cancelados quando ela sai.
+
+80 testes no total. Falta a validação dentro do Foundry.
+
+## v4.10.0
+
+### A tela de transição voltou, e agora aparece em toda troca de mapa
+- **O que é**: a miniatura do mapa desfocada ao fundo, o nome do mapa na frente e "Carregando" embaixo, enquanto o mapa carrega.
+- **Voltou a ser o padrão.** Na 4.6.0 o padrão tinha virado a transição nativa do Foundry, e a tela deixou de aparecer em mundos que nunca tinham mexido nessa opção.
+- **Aparece em toda troca de mapa, venha de onde vier.** Antes ela só aparecia quando o Navegador enviava um jogador. Trocas feitas por outro caminho ficavam sem tela: **Ver** e **Ativar** do Foundry, portais e botões de outros módulos (como as cidades do mapa interativo do Objetos Vivos). Agora a tela acompanha o próprio Foundry: entra quando ele começa a montar um mapa diferente e sai quando o mapa fica pronto. Nova opção **Mostrar em toda troca de mapa** (ligada por padrão).
+- **O mestre também vê.** Nova opção **Mostrar também para o mestre** (ligada por padrão). Para o mestre, um clique na tela fecha na hora, sem esperar o tempo mínimo.
+- A primeira carga do mundo e o mesmo mapa sendo redesenhado não mostram a tela. Num envio do Navegador a tela aparece uma vez só.
+- **Mapa sem miniatura** usa a própria imagem de fundo (antes ficava só o fundo preto).
+- Na Central, a seção **Tela do módulo** subiu para logo abaixo do tipo de transição.
+- Conferido num navegador de verdade com o CSS do módulo: fundo desfocado, nome e "Carregando" aparecem, e a tela some no fim. 6 testes novos (73 no total). Falta o teste no Foundry real.
+
 ## v4.9.0
 
 ### Transição personalizada: mais fácil de achar, com nome e duração

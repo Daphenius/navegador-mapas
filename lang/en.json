@@ -251,6 +251,21 @@
       "TransicaoPropriaDuracao": {
         "Nome": "Duration (ms)",
         "Dica": "How long the custom transition takes."
+      },
+      "TransicaoSempre": {
+        "Nome": "Show on every map change",
+        "Dica": "The screen shows whenever the map changes, whatever caused it: sent by the Navegador, Foundry's View or Activate, portals and buttons from other modules (such as the cities of Objetos Vivos). Off: only when the Navegador sends the player."
+      },
+      "TransicaoMestre": {
+        "Nome": "Show for the GM too",
+        "Dica": "The GM also sees the screen when changing maps. One click on the screen closes it right away."
+      },
+      "PedidosJogadores": {
+        "Nome": "Player requests to change map",
+        "Dica": "A macro (or a console command) can ask, on behalf of a player, to go to another map or take their own token there. What to do with those requests. Sends made by the GM and Objetos Vivos actions do not go through here.",
+        "Perguntar": "Ask the GM (recommended)",
+        "Permitir": "Always accept",
+        "Recusar": "Always refuse"
       }
     },
     "Central": {
@@ -311,7 +326,12 @@
       "TesteFalhou": "I could not play the test here. Pick the custom transition and send a player to a map to see it; the reason is in the console (F12).",
       "DependePropria": "Applies when the transition type is the custom one. Picked as \"Default native transition\", it uses the native duration.",
       "PropriaOk": "Registered among Foundry's transitions on this computer.",
-      "PropriaFalhou": "It was not registered in Foundry: {motivo}. Meanwhile, players who are sent see the module's screen."
+      "PropriaFalhou": "It was not registered in Foundry: {motivo}. Meanwhile, players who are sent see the module's screen.",
+      "DependeSoTela": "Applies with the module's screen (name over the thumbnail, or name only)."
+    },
+    "Pedido": {
+      "Titulo": "Map change request",
+      "Pergunta": "<strong>{nome}</strong> asks to go to <strong>{mapa}</strong>. Send?"
     }
   }
 }
