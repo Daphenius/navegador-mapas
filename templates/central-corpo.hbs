@@ -24,6 +24,8 @@
           </select>
         {{else if faixa}}
           <div class="nm-cc-faixa"><input type="range" id="nm-cc-{{chave}}" data-chave="{{chave}}" min="{{min}}" max="{{max}}" step="{{passo}}" value="{{valor}}" {{#if desligado}}disabled{{/if}}><output data-saida="{{chave}}">{{valor}}</output></div>
+        {{else if cor}}
+          <input type="color" id="nm-cc-{{chave}}" data-chave="{{chave}}" value="{{valor}}" {{#if desligado}}disabled{{/if}}>
         {{else if numero}}
           <input type="number" id="nm-cc-{{chave}}" data-chave="{{chave}}" value="{{valor}}" step="any" {{#if desligado}}disabled{{/if}}>
         {{else}}
@@ -32,6 +34,8 @@
       </div>
     </div>
     {{/each}}
+    {{#if nota}}<p class="nm-cc-nota"><i class="fa-solid fa-circle-info"></i> {{nota}}</p>{{/if}}
+    {{#if botao}}<div class="nm-cc-acoes"><button type="button" data-action="{{botao.acao}}"><i class="fa-solid {{botao.icone}}"></i> {{botao.rotulo}}</button></div>{{/if}}
   </div>
   {{/each}}
 </section>

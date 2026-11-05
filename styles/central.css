@@ -88,3 +88,9 @@
 .nm-central.nm-cc-estreita .nm-cc-rodape { grid-column: 1; }
 .nm-central.nm-cc-estreita .nm-cc-campo { grid-template-columns: 1fr; gap: 8px; }
 .nm-central.nm-cc-estreita .nm-cc-controle { justify-content: flex-start; }
+
+/* Transição personalizada: cor, nota e botão de teste */
+.nm-central .nm-cc-controle input[type="color"] { width: 64px; height: 30px; padding: 2px; border-radius: 6px; cursor: pointer; }
+.nm-cc-nota { margin: 8px 0 0; font-size: 12px; opacity: .8; }
+.nm-cc-acoes { display: flex; justify-content: flex-end; margin-top: 8px; }
+.nm-central .nm-cc-acoes button { width: auto; padding: 4px 14px; }

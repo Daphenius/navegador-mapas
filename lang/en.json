@@ -25,7 +25,8 @@
       "TokenNaoCabe": "{token} is larger than the map \"{mapa}\" and doesn't fit. The token was not moved and stays where it was."
     },
     "Transicao": {
-      "Carregando": "Loading"
+      "Carregando": "Loading",
+      "Propria": "Custom (Navegador de Mundos)"
     },
     "Jog": {
       "Titulo": "Players",
@@ -212,6 +213,35 @@
       "AreaChegada": {
         "Nome": "Arrival area size",
         "Dica": "How many rings of spaces around the arrival flag make up the area where tokens arrive, one token per space, from the center outwards. 0 = only the flag's space (other tokens go to the nearest free spaces). 1 = the flag and the spaces around it (7 hexes or 9 squares). 2 = 19 hexes or 25 squares. When the area is full, the next tokens go to the nearest free space and the GM is warned."
+      },
+      "TransicaoPropriaEstilo": {
+        "Nome": "Style",
+        "Dica": "How the new map takes the place of the old one.",
+        "Cortina": "Curtain (sweeps across the screen)",
+        "Iris": "Iris (opens from the center)",
+        "Dissolver": "Dissolve (in small dots)",
+        "Veu": "Veil (fades into a color and out of it)"
+      },
+      "TransicaoPropriaCor": {
+        "Nome": "Color",
+        "Dica": "The color of the glow on the edge between the two maps or, with Veil, the color the map fades into."
+      },
+      "TransicaoPropriaDirecao": {
+        "Nome": "Curtain direction",
+        "Dica": "Which way the curtain runs.",
+        "Direita": "Left to right",
+        "Esquerda": "Right to left",
+        "Baixo": "Top to bottom",
+        "Cima": "Bottom to top",
+        "Diagonal": "Diagonal"
+      },
+      "TransicaoPropriaSuave": {
+        "Nome": "Edge softness (%)",
+        "Dica": "0 = hard cut between the maps; 100 = very soft."
+      },
+      "TransicaoPropriaBrilho": {
+        "Nome": "Edge glow (%)",
+        "Dica": "Strength of the glow, in the chosen color, where the two maps meet (0 turns it off)."
       }
     },
     "Central": {
@@ -238,7 +268,8 @@
         "Nativa": "Foundry native transition",
         "Tela": "Module screen",
         "Barra": "Scene navigation bar",
-        "Lateral": "Sidebar"
+        "Lateral": "Sidebar",
+        "Propria": "Custom transition"
       },
       "DependeNativa": "Applies when the transition type is Foundry's native one.",
       "DependeTela": "Does not apply with the transition turned off.",
@@ -262,7 +293,13 @@
       "NaoSalvo": {
         "Titulo": "Unsaved changes",
         "Texto": "There are {n} unsaved change(s). Close anyway?"
-      }
+      },
+      "NotaPropria": "It shows as \"Custom (Navegador de Mundos)\" in Foundry's transition list: pick it in \"Default native transition\" or in a map's configuration. The duration is the native transition's.",
+      "Testar": "Test on the open map",
+      "DependeCortina": "Applies to the Curtain style.",
+      "DependeBorda": "Does not apply to the Veil style.",
+      "TesteSemMapa": "Open a map to test the transition.",
+      "TesteFalhou": "I could not play the test here. Pick the custom transition and send a player to a map to see it; the reason is in the console (F12)."
     }
   }
 }

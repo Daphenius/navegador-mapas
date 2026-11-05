@@ -143,6 +143,31 @@ export function registrarConfig({ aoMudarNav, aoAtalho, aoMudarArea }) {
       range: { min: 250, max: 10000, step: 250 }
     });
   }
+  // Transição personalizada (transicao-propria.js): só existe se ela entrou no registro do Foundry
+  if (tipos.nmPropria) {
+    reg("transicaoPropriaEstilo", {
+      name: "NM.Config.TransicaoPropriaEstilo.Nome", hint: "NM.Config.TransicaoPropriaEstilo.Dica",
+      scope: "world", config: true, type: String, default: "cortina",
+      choices: { cortina: "NM.Config.TransicaoPropriaEstilo.Cortina", iris: "NM.Config.TransicaoPropriaEstilo.Iris", dissolver: "NM.Config.TransicaoPropriaEstilo.Dissolver", veu: "NM.Config.TransicaoPropriaEstilo.Veu" }
+    });
+    reg("transicaoPropriaCor", {
+      name: "NM.Config.TransicaoPropriaCor.Nome", hint: "NM.Config.TransicaoPropriaCor.Dica",
+      scope: "world", config: true, type: String, default: "#f0a03c"
+    });
+    reg("transicaoPropriaDirecao", {
+      name: "NM.Config.TransicaoPropriaDirecao.Nome", hint: "NM.Config.TransicaoPropriaDirecao.Dica",
+      scope: "world", config: true, type: String, default: "direita",
+      choices: { direita: "NM.Config.TransicaoPropriaDirecao.Direita", esquerda: "NM.Config.TransicaoPropriaDirecao.Esquerda", baixo: "NM.Config.TransicaoPropriaDirecao.Baixo", cima: "NM.Config.TransicaoPropriaDirecao.Cima", diagonal: "NM.Config.TransicaoPropriaDirecao.Diagonal" }
+    });
+    reg("transicaoPropriaSuave", {
+      name: "NM.Config.TransicaoPropriaSuave.Nome", hint: "NM.Config.TransicaoPropriaSuave.Dica",
+      scope: "world", config: true, type: Number, default: 35, range: { min: 0, max: 100, step: 5 }
+    });
+    reg("transicaoPropriaBrilho", {
+      name: "NM.Config.TransicaoPropriaBrilho.Nome", hint: "NM.Config.TransicaoPropriaBrilho.Dica",
+      scope: "world", config: true, type: Number, default: 60, range: { min: 0, max: 100, step: 5 }
+    });
+  }
   reg("transicaoTexto", {
     name: "NM.Config.TransicaoTexto.Nome", hint: "NM.Config.TransicaoTexto.Dica",
     scope: "world", config: true, type: String, default: ""

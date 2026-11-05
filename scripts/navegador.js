@@ -23,10 +23,12 @@ import { abrir, NavegadorMapas, TEMPLATES } from "./janela.js";
 import { injetarBotaoNav, aplicarOcultarNav } from "./barra.js";
 import { criarApi } from "./api.js";
 import { registrarCentral } from "./central.js";
+import { registrarTransicaoPropria } from "./transicao-propria.js";
 
 Hooks.once("init", () => {
   foundry.applications.handlebars.loadTemplates(Object.values(TEMPLATES));
   interceptarPrimeiroDesenho();
+  registrarTransicaoPropria(); // antes das configurações, para aparecer nas listas de transição
   registrarCentral();
   registrarConfig({ aoMudarNav: aplicarOcultarNav, aoAtalho: abrir, aoMudarArea: desenharChegada });
 });

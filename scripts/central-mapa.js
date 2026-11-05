@@ -24,6 +24,14 @@ export const ABAS_CENTRAL = [
         { chave: "transicaoNativaTipo", depende: soNativa },
         { chave: "transicaoNativaDuracao", depende: soNativa }
       ] },
+      { id: "propria", titulo: "Central.Secao.Propria", icone: "fa-palette", nota: "Central.NotaPropria",
+        botao: { acao: "testarTransicao", rotulo: "Central.Testar", icone: "fa-play" }, campos: [
+        { chave: "transicaoPropriaEstilo" },
+        { chave: "transicaoPropriaCor", cor: true },
+        { chave: "transicaoPropriaDirecao", depende: { chave: "transicaoPropriaEstilo", quando: v => v === "cortina", texto: "Central.DependeCortina" } },
+        { chave: "transicaoPropriaSuave", depende: { chave: "transicaoPropriaEstilo", quando: v => v !== "veu", texto: "Central.DependeBorda" } },
+        { chave: "transicaoPropriaBrilho", depende: { chave: "transicaoPropriaEstilo", quando: v => v !== "veu", texto: "Central.DependeBorda" } }
+      ] },
       { id: "tela", titulo: "Central.Secao.Tela", icone: "fa-image", campos: [
         { chave: "transicaoTexto", depende: comTela },
         { chave: "transicaoTempo", depende: comTela }
@@ -56,5 +64,8 @@ export function conferirValor(def, valor) {
   }
   const opcoes = opcoesDe(def);
   if (opcoes && Object.keys(opcoes).length) return String(valor) in opcoes ? "" : "opcao";
-  return typeof valor === "string" ? "" : "tipo";
+  if (typeof valor !== "string") return "tipo";
+  // configuração de cor: só "#rrggbb"
+  if (/^#[0-9a-f]{6}$/i.test(String(def.default ?? ""))) return /^#[0-9a-f]{6}$/i.test(valor) ? "" : "opcao";
+  return "";
 }

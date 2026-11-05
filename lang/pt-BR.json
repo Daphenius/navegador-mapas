@@ -25,7 +25,8 @@
       "TokenNaoCabe": "{token} é maior que o mapa \"{mapa}\" e não cabe nele. O token não foi levado e continua onde estava."
     },
     "Transicao": {
-      "Carregando": "Carregando"
+      "Carregando": "Carregando",
+      "Propria": "Personalizada (Navegador de Mundos)"
     },
     "Jog": {
       "Titulo": "Jogadores",
@@ -212,6 +213,35 @@
       "AreaChegada": {
         "Nome": "Tamanho da área de chegada",
         "Dica": "Quantos anéis de casas em volta da bandeira de chegada formam a área onde os tokens chegam, um token por casa, do centro para fora. 0 = só a casa da bandeira (os outros tokens ficam nas casas livres mais próximas). 1 = a bandeira e as casas em volta (7 hexágonos ou 9 quadrados). 2 = 19 hexágonos ou 25 quadrados. Com a área cheia, os próximos tokens ficam na casa livre mais perto, e o mestre é avisado."
+      },
+      "TransicaoPropriaEstilo": {
+        "Nome": "Estilo",
+        "Dica": "Como o mapa novo toma o lugar do antigo.",
+        "Cortina": "Cortina (varre a tela de um lado ao outro)",
+        "Iris": "Íris (abre do centro para fora)",
+        "Dissolver": "Dissolver (em pontinhos)",
+        "Veu": "Véu (some numa cor e surge dela)"
+      },
+      "TransicaoPropriaCor": {
+        "Nome": "Cor",
+        "Dica": "A cor do brilho na borda entre os dois mapas ou, no Véu, a cor em que o mapa some."
+      },
+      "TransicaoPropriaDirecao": {
+        "Nome": "Direção da cortina",
+        "Dica": "Para onde a cortina corre.",
+        "Direita": "Da esquerda para a direita",
+        "Esquerda": "Da direita para a esquerda",
+        "Baixo": "De cima para baixo",
+        "Cima": "De baixo para cima",
+        "Diagonal": "Na diagonal"
+      },
+      "TransicaoPropriaSuave": {
+        "Nome": "Suavidade da borda (%)",
+        "Dica": "0 = corte seco entre os mapas; 100 = bem esfumaçada."
+      },
+      "TransicaoPropriaBrilho": {
+        "Nome": "Brilho da borda (%)",
+        "Dica": "Força do brilho, na cor escolhida, onde os dois mapas se encontram (0 desliga)."
       }
     },
     "Central": {
@@ -238,7 +268,8 @@
         "Nativa": "Transição nativa do Foundry",
         "Tela": "Tela do módulo",
         "Barra": "Barra de navegação de mapas",
-        "Lateral": "Barra lateral"
+        "Lateral": "Barra lateral",
+        "Propria": "Transição personalizada"
       },
       "DependeNativa": "Vale quando o tipo de transição é a nativa do Foundry.",
       "DependeTela": "Não vale com a transição desligada.",
@@ -262,7 +293,13 @@
       "NaoSalvo": {
         "Titulo": "Alterações não salvas",
         "Texto": "Há {n} alteração(ões) não salva(s). Fechar mesmo assim?"
-      }
+      },
+      "NotaPropria": "Aparece como \"Personalizada (Navegador de Mundos)\" na lista de transições do Foundry: escolha-a em \"Transição nativa padrão\" ou na configuração de um mapa. A duração é a da transição nativa.",
+      "Testar": "Testar no mapa aberto",
+      "DependeCortina": "Vale no estilo Cortina.",
+      "DependeBorda": "Não vale no estilo Véu.",
+      "TesteSemMapa": "Abra um mapa para testar a transição.",
+      "TesteFalhou": "Não consegui tocar o teste aqui. Escolha a transição personalizada e envie um jogador para um mapa para ver; o motivo está no console (F12)."
     }
   }
 }

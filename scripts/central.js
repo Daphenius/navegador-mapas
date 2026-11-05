@@ -9,6 +9,7 @@
 
 import { ID, t, esc } from "./nucleo.js";
 import { ABAS_CENTRAL, CHAVES_CENTRAL, opcoesDe, conferirValor } from "./central-mapa.js";
+import { TIPO_PROPRIO, definirPrevia, testarTransicao } from "./transicao-propria.js";
 
 const { ApplicationV2, DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -25,7 +26,7 @@ export class CentralConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     classes: ["nm-central"],
     window: { title: "NM.Central.Titulo", icon: "fa-solid fa-map-location-dot", resizable: true },
     position: { width: 820, height: 600 },
-    actions: { aba: CentralConfig.#aba, salvar: CentralConfig.#salvar, cancelar: CentralConfig.#cancelar }
+    actions: { aba: CentralConfig.#aba, salvar: CentralConfig.#salvar, cancelar: CentralConfig.#cancelar, testarTransicao: CentralConfig.#testarTransicao }
   };
 
   static PARTS = {
@@ -69,10 +70,11 @@ export class CentralConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     if (def.type === Boolean) tipo = "booleano";
     else if (opcoes && Object.keys(opcoes).length) tipo = "lista";
     else if (def.type === Number) tipo = def.range ? "faixa" : "numero";
+    else if (item.cor) tipo = "cor";
     const falta = item.depende && !item.depende.quando(this.valor(item.depende.chave));
     return {
       chave: item.chave, nome: nomeDe(item.chave), dica: localizar(def.hint), valor,
-      booleano: tipo === "booleano", lista: tipo === "lista", faixa: tipo === "faixa", numero: tipo === "numero",
+      booleano: tipo === "booleano", lista: tipo === "lista", faixa: tipo === "faixa", numero: tipo === "numero", cor: tipo === "cor",
       opcoes: tipo === "lista" ? Object.entries(opcoes).map(([k, r]) => ({ valor: k, rotulo: localizar(r), selecionado: String(valor) === k })) : [],
       min: def.range?.min, max: def.range?.max, passo: def.range?.step ?? "any",
       alterado: this.pendentes.has(item.chave),
@@ -83,7 +85,9 @@ export class CentralConfig extends HandlebarsApplicationMixin(ApplicationV2) {
   #secoes(aba) {
     return aba.secoes.map(s => {
       const campos = s.campos.map(c => this.#campo(c)).filter(Boolean);
-      return campos.length ? { titulo: t(s.titulo), icone: s.icone, campos } : null;
+      if (!campos.length) return null;
+      return { titulo: t(s.titulo), icone: s.icone, campos, nota: s.nota ? t(s.nota) : "",
+        botao: s.botao ? { acao: s.botao.acao, rotulo: t(s.botao.rotulo), icone: s.botao.icone } : null };
     }).filter(Boolean);
   }
 
@@ -180,6 +184,17 @@ export class CentralConfig extends HandlebarsApplicationMixin(ApplicationV2) {
 
   // ---------- ações
   static #aba(ev, alvo) { this.aba = alvo.dataset.aba; this.render({ parts: ["abas", "corpo"] }); }
+
+  // Toca a transição personalizada no mapa aberto, com o que está na janela (mesmo sem salvar)
+  static async #testarTransicao() {
+    const v = chave => this.valor(chave);
+    definirPrevia({ estilo: v("transicaoPropriaEstilo"), cor: v("transicaoPropriaCor"), direcao: v("transicaoPropriaDirecao"), suave: v("transicaoPropriaSuave"), brilho: v("transicaoPropriaBrilho") });
+    try {
+      const motivo = await testarTransicao(TIPO_PROPRIO, Number(this.valor("transicaoNativaDuracao")) || 1500);
+      if (motivo === "sem-mapa") ui.notifications.warn(t("Central.TesteSemMapa"));
+      else if (motivo) ui.notifications.warn(t("Central.TesteFalhou"));
+    } finally { definirPrevia(null); }
+  }
 
   static async #cancelar() {
     this.pendentes.clear();

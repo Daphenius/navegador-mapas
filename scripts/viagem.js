@@ -133,7 +133,7 @@ export function irPara(sceneId, { transicao = false } = {}) {
     if (modo === "nativa") {
       const r = resolverTransicaoNativa(cena);
       nativa = r.transicao;
-      if (nativa) console.debug(`${ID} | transição: nativa "${nativa.type}" (${nativa.duration} ms, vinda de: ${r.origem}) para "${cena.name}"`);
+      if (nativa) console.info(`${ID} | transição: nativa "${nativa.type}" (${nativa.duration} ms, vinda de: ${r.origem}) para "${cena.name}"`);
       else console.warn(`${ID} | transição: nativa indisponível para "${cena.name}" (${r.motivo}); usando a tela do módulo`);
     }
     // Tela do módulo: nos modos "fundo" e "nome", ou no lugar da nativa quando ela não pode ser usada

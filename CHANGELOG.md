@@ -1,5 +1,26 @@
 # Changelog
 
+## v4.8.0
+
+### Novidade: transição personalizada, editável
+- O módulo acrescenta uma transição à **lista nativa do Foundry 14**: **Personalizada (Navegador de Mundos)**. Ela aparece em *Transição nativa padrão* (Central de Configurações) e na lista de transições do Foundry.
+- **Editável na Central** (aba Transição, seção *Transição personalizada*):
+  - **Estilo**: Cortina (varre a tela), Íris (abre do centro), Dissolver (em pontinhos) ou Véu (some numa cor e surge dela);
+  - **Cor**: do brilho na borda entre os dois mapas ou, no Véu, a cor em que o mapa some;
+  - **Direção da cortina**, **suavidade** e **brilho** da borda.
+- **Testar no mapa aberto**: toca a animação para o mestre com o que está na janela, antes de salvar. Se o teste não puder ser tocado, a janela avisa.
+- A duração é a da transição nativa (a do mapa ou a padrão das configurações). Se o Foundry recusar a transição, a tela do módulo entra no lugar, como nas outras.
+- Ela é feita em cima do filtro de transição do próprio Foundry (mesmas imagens do mapa antigo e do novo), só com um desenho diferente. O programa da animação foi compilado e conferido num navegador de verdade (cada estilo no começo, no meio e no fim).
+
+### Diagnóstico
+- A linha do console que diz qual transição nativa foi usada (`navegador-mapas | transição: nativa ...`) saía no nível "Verbose", escondido por padrão no navegador. Agora sai no nível normal, no console (F12) do jogador enviado.
+
+### Ainda em aberto
+- O motivo de a transição nativa ter deixado de aparecer em alguns envios ainda não foi encontrado: a 4.8.0 não muda esse caminho. A linha do console acima é o que falta para achar.
+
+### Por dentro
+- 6 testes novos (62 no total). Falta o teste no Foundry real.
+
 ## v4.7.0
 
 ### Novidade: Central de Configurações

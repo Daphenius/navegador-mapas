@@ -50,6 +50,7 @@ Só o mestre usa o Navegador. Abra de qualquer um destes jeitos:
 - **Pré-carregamento**: o mapa carrega no navegador do jogador antes da troca.
 - **Levar o token junto**: o token do personagem vai para o **ponto de chegada** do mapa (veja abaixo), e vários tokens enviados juntos não se empilham.
 - **Transição nativa**: ao enviar um jogador, o mapa troca com a animação de transição do próprio Foundry 14 (a do mapa de destino ou uma padrão escolhida nas configurações). Se a nativa não puder ser usada, a tela própria do módulo entra no lugar, e o motivo fica registrado no console (F12).
+- **Transição personalizada**: o módulo acrescenta uma transição à lista nativa do Foundry, **Personalizada (Navegador de Mundos)**, e você edita a aparência dela na Central de Configurações (aba Transição): **estilo** (Cortina, Íris, Dissolver ou Véu), **cor**, **direção** da cortina, **suavidade** e **brilho** da borda entre os dois mapas. Para usar, escolha-a em **Transição nativa padrão** ou na configuração de um mapa (*Transition Animation*). O botão **Testar no mapa aberto** toca a animação para o mestre com o que está na janela, sem precisar salvar. Antes de desinstalar o módulo, troque a transição dos mapas que estiverem usando a personalizada.
 - **Tela de transição própria** (opcional): o jogador vê o nome do mapa (o nome que os jogadores enxergam) sobre a miniatura desfocada enquanto o mapa carrega. Em **Nota, etiquetas e música** de cada mapa dá para trocar o título, escrever um comentário que aparece abaixo dele e mudar (ou tirar) o texto de carregamento, com um botão de prévia. A tela fica um tempo mínimo (configurável) para a animação aparecer inteira mesmo quando o mapa carrega rápido.
 - **O jogador volta ao último mapa** em que estava ao entrar ou recarregar (F5), sem carregar o mapa ativo antes. A única exceção é **"Ativar mapa"** (menu ⋮), que leva a mesa toda: quem está conectado vai na hora, e quem está offline entra no mapa ativo quando conectar. Enviar jogadores pelo Navegador nunca mexe no último mapa dos outros.
 - **Aviso de jogador sem token**: aparece quando um jogador está num mapa sem o token dele, com um botão para colocar o token ali.
@@ -107,7 +108,7 @@ api.portal(token, sceneId, regiaoUuid);       // leva um token (e os jogadores d
 
 ## Testes
 
-A pasta `testes/` tem testes automáticos da lógica (transferência de tokens, envios simultâneos, respostas fora de ordem, casas livres, área de chegada, música, socket, transição no envio e Central de Configurações), rodando num Foundry simulado. Para rodar, na pasta do módulo: `node --test`. Eles não substituem testar no Foundry real e não vão no pacote do módulo.
+A pasta `testes/` tem testes automáticos da lógica (transferência de tokens, envios simultâneos, respostas fora de ordem, casas livres, área de chegada, música, socket, transição no envio, transição personalizada e Central de Configurações), rodando num Foundry simulado. Para rodar, na pasta do módulo: `node --test`. Eles não substituem testar no Foundry real e não vão no pacote do módulo.
 
 ## Licença
 
