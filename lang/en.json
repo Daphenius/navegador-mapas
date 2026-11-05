@@ -180,7 +180,8 @@
         "Fundo": "Name over a blurred thumbnail",
         "SoNome": "Name only",
         "Off": "Off",
-        "Nativa": "Foundry native transition (recommended)"
+        "Nativa": "Foundry native transition (recommended)",
+        "PropriaModo": "Custom transition (editable below)"
       },
       "TransicaoNativaTipo": {
         "Nome": "Default native transition",
@@ -242,6 +243,14 @@
       "TransicaoPropriaBrilho": {
         "Nome": "Edge glow (%)",
         "Dica": "Strength of the glow, in the chosen color, where the two maps meet (0 turns it off)."
+      },
+      "TransicaoPropriaNome": {
+        "Nome": "Transition name",
+        "Dica": "The name it shows under in transition lists. Blank: \"Custom (Navegador de Mundos)\"."
+      },
+      "TransicaoPropriaDuracao": {
+        "Nome": "Duration (ms)",
+        "Dica": "How long the custom transition takes."
       }
     },
     "Central": {
@@ -294,12 +303,15 @@
         "Titulo": "Unsaved changes",
         "Texto": "There are {n} unsaved change(s). Close anyway?"
       },
-      "NotaPropria": "It shows as \"Custom (Navegador de Mundos)\" in Foundry's transition list: pick it in \"Default native transition\" or in a map's configuration. The duration is the native transition's.",
+      "NotaPropria": "To use it: in \"Transition type\", at the top of this tab, pick \"Custom transition\". It also joins Foundry's transition list, under the name above.",
       "Testar": "Test on the open map",
       "DependeCortina": "Applies to the Curtain style.",
       "DependeBorda": "Does not apply to the Veil style.",
       "TesteSemMapa": "Open a map to test the transition.",
-      "TesteFalhou": "I could not play the test here. Pick the custom transition and send a player to a map to see it; the reason is in the console (F12)."
+      "TesteFalhou": "I could not play the test here. Pick the custom transition and send a player to a map to see it; the reason is in the console (F12).",
+      "DependePropria": "Applies when the transition type is the custom one. Picked as \"Default native transition\", it uses the native duration.",
+      "PropriaOk": "Registered among Foundry's transitions on this computer.",
+      "PropriaFalhou": "It was not registered in Foundry: {motivo}. Meanwhile, players who are sent see the module's screen."
     }
   }
 }

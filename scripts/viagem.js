@@ -2,6 +2,7 @@
 // casas livres, portais, ponto de chegada e o "último mapa" de cada jogador
 
 import { ID, t, esc, cfg, emitir, souMestreAtivo, estado, enfileirar, esperarCanvas, esperarCena, ehNenhuma, tiposTransicaoNativa } from "./nucleo.js";
+import { TIPO_PROPRIO, estadoPropria } from "./transicao-propria.js";
 
 const ENTRADA_TRANSICAO_MS = 550;       // tempo do escurecimento antes de trocar o mapa (acompanha o CSS)
 const SAIDA_TRANSICAO_MS = 700;         // tempo do clareamento antes de tirar a tela do DOM
@@ -34,7 +35,7 @@ export function textosTransicao(cena, mudar = {}) {
 async function mostrarTransicao(cena, mudar = {}, { reserva = false } = {}) {
   const modo = cfg("transicao");
   if (modo === "off" && !mudar.previa) return null;
-  if (modo === "nativa" && !mudar.previa && !reserva) return null;
+  if ((modo === "nativa" || modo === "propria") && !mudar.previa && !reserva) return null;
   const tx = textosTransicao(cena, mudar);
   const el = document.createElement("div");
   el.className = "nm-transicao";
@@ -120,6 +121,16 @@ export function resolverTransicaoNativa(cena) {
 }
 export const transicaoNativa = cena => resolverTransicaoNativa(cena).transicao;
 
+// Modo "Transição personalizada": sempre a do módulo, com a duração dela
+export function resolverTransicaoPropria() {
+  const e = estadoPropria();
+  const noRegistro = !!globalThis.CONFIG?.Canvas?.sceneTransitions?.[TIPO_PROPRIO];
+  if (!e.ok || !noRegistro) return { transicao: null, motivo: e.motivo || "a transição personalizada não está no registro do Foundry" };
+  let duracao = null;
+  try { duracao = cfg("transicaoPropriaDuracao"); } catch { /* usa o padrão */ }
+  return { transicao: { type: TIPO_PROPRIO, duration: duracaoNativa(duracao) }, origem: "transição personalizada" };
+}
+
 export function irPara(sceneId, { transicao = false } = {}) {
   return enfileirar(async () => {
     const cena = game.scenes.get(sceneId);
@@ -130,14 +141,15 @@ export function irPara(sceneId, { transicao = false } = {}) {
     const telaPropria = reserva => mostrarTransicao(cena, {}, { reserva })
       .catch(err => { console.warn(`${ID} | transição: a tela do módulo falhou`, err); return null; });
     let nativa = null, tela = null;
-    if (modo === "nativa") {
-      const r = resolverTransicaoNativa(cena);
+    const pelaPlaca = modo === "nativa" || modo === "propria"; // animações do Foundry, feitas pela placa de vídeo
+    if (pelaPlaca) {
+      const r = modo === "propria" ? resolverTransicaoPropria() : resolverTransicaoNativa(cena);
       nativa = r.transicao;
       if (nativa) console.info(`${ID} | transição: nativa "${nativa.type}" (${nativa.duration} ms, vinda de: ${r.origem}) para "${cena.name}"`);
       else console.warn(`${ID} | transição: nativa indisponível para "${cena.name}" (${r.motivo}); usando a tela do módulo`);
     }
     // Tela do módulo: nos modos "fundo" e "nome", ou no lugar da nativa quando ela não pode ser usada
-    if (transicao && modo !== "off" && !nativa) tela = await telaPropria(modo === "nativa");
+    if (transicao && modo !== "off" && !nativa) tela = await telaPropria(pelaPlaca);
     let desenhou = null;
     try {
       desenhou = esperarCena(cena.id, LIMITE_TROCA_MS); // antes do view(), para não perder o aviso

@@ -6,6 +6,7 @@
 //   depende  { chave, quando(valor), texto } — o campo fica desligado enquanto a condição não vale
 
 const soNativa = { chave: "transicao", quando: v => v === "nativa", texto: "Central.DependeNativa" };
+const soPropria = { chave: "transicao", quando: v => v === "propria", texto: "Central.DependePropria" };
 const comTela = { chave: "transicao", quando: v => v !== "off", texto: "Central.DependeTela" };
 
 export const ABAS_CENTRAL = [
@@ -20,17 +21,19 @@ export const ABAS_CENTRAL = [
     id: "transicao", rotulo: "Central.Aba.Transicao", icone: "fa-wand-magic-sparkles", lema: "Central.Lema.Transicao",
     secoes: [
       { id: "modo", titulo: "Central.Secao.Modo", icone: "fa-shuffle", campos: [{ chave: "transicao" }] },
-      { id: "nativa", titulo: "Central.Secao.Nativa", icone: "fa-film", campos: [
-        { chave: "transicaoNativaTipo", depende: soNativa },
-        { chave: "transicaoNativaDuracao", depende: soNativa }
-      ] },
-      { id: "propria", titulo: "Central.Secao.Propria", icone: "fa-palette", nota: "Central.NotaPropria",
+      { id: "propria", titulo: "Central.Secao.Propria", icone: "fa-palette", nota: "Central.NotaPropria", estado: "propria",
         botao: { acao: "testarTransicao", rotulo: "Central.Testar", icone: "fa-play" }, campos: [
+        { chave: "transicaoPropriaNome" },
+        { chave: "transicaoPropriaDuracao", depende: soPropria },
         { chave: "transicaoPropriaEstilo" },
         { chave: "transicaoPropriaCor", cor: true },
         { chave: "transicaoPropriaDirecao", depende: { chave: "transicaoPropriaEstilo", quando: v => v === "cortina", texto: "Central.DependeCortina" } },
         { chave: "transicaoPropriaSuave", depende: { chave: "transicaoPropriaEstilo", quando: v => v !== "veu", texto: "Central.DependeBorda" } },
         { chave: "transicaoPropriaBrilho", depende: { chave: "transicaoPropriaEstilo", quando: v => v !== "veu", texto: "Central.DependeBorda" } }
+      ] },
+      { id: "nativa", titulo: "Central.Secao.Nativa", icone: "fa-film", campos: [
+        { chave: "transicaoNativaTipo", depende: soNativa },
+        { chave: "transicaoNativaDuracao", depende: soNativa }
       ] },
       { id: "tela", titulo: "Central.Secao.Tela", icone: "fa-image", campos: [
         { chave: "transicaoTexto", depende: comTela },

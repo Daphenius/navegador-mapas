@@ -127,6 +127,7 @@ export function registrarConfig({ aoMudarNav, aoAtalho, aoMudarArea }) {
     scope: "world", config: true, type: String, default: temNativa ? "nativa" : "fundo",
     choices: {
       ...(temNativa ? { nativa: "NM.Config.Transicao.Nativa" } : {}),
+      propria: "NM.Config.Transicao.PropriaModo",
       fundo: "NM.Config.Transicao.Fundo", nome: "NM.Config.Transicao.SoNome", off: "NM.Config.Transicao.Off"
     }
   });
@@ -135,7 +136,8 @@ export function registrarConfig({ aoMudarNav, aoAtalho, aoMudarArea }) {
     reg("transicaoNativaTipo", {
       name: "NM.Config.TransicaoNativaTipo.Nome", hint: "NM.Config.TransicaoNativaTipo.Dica",
       scope: "world", config: true, type: String, default: padrao,
-      choices: Object.fromEntries(Object.entries(tipos).filter(([k]) => !ehNenhuma(k)))
+      // lida na hora: o nome da personalizada pode ter sido trocado na Central
+      choices: () => Object.fromEntries(Object.entries(tiposTransicaoNativa()).filter(([k]) => !ehNenhuma(k)))
     });
     reg("transicaoNativaDuracao", {
       name: "NM.Config.TransicaoNativaDuracao.Nome", hint: "NM.Config.TransicaoNativaDuracao.Dica",
@@ -143,8 +145,18 @@ export function registrarConfig({ aoMudarNav, aoAtalho, aoMudarArea }) {
       range: { min: 250, max: 10000, step: 250 }
     });
   }
-  // Transição personalizada (transicao-propria.js): só existe se ela entrou no registro do Foundry
-  if (tipos.nmPropria) {
+  // Transição personalizada (transicao-propria.js). As opções existem sempre; se o Foundry não aceitou
+  // a transição, a Central diz o motivo.
+  {
+    reg("transicaoPropriaNome", {
+      name: "NM.Config.TransicaoPropriaNome.Nome", hint: "NM.Config.TransicaoPropriaNome.Dica",
+      scope: "world", config: true, type: String, default: ""
+    });
+    reg("transicaoPropriaDuracao", {
+      name: "NM.Config.TransicaoPropriaDuracao.Nome", hint: "NM.Config.TransicaoPropriaDuracao.Dica",
+      scope: "world", config: true, type: Number, default: 1500,
+      range: { min: 250, max: 10000, step: 250 }
+    });
     reg("transicaoPropriaEstilo", {
       name: "NM.Config.TransicaoPropriaEstilo.Nome", hint: "NM.Config.TransicaoPropriaEstilo.Dica",
       scope: "world", config: true, type: String, default: "cortina",

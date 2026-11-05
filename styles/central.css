@@ -94,3 +94,6 @@
 .nm-cc-nota { margin: 8px 0 0; font-size: 12px; opacity: .8; }
 .nm-cc-acoes { display: flex; justify-content: flex-end; margin-top: 8px; }
 .nm-central .nm-cc-acoes button { width: auto; padding: 4px 14px; }
+.nm-cc-situacao { margin: 0 0 8px; padding: 6px 10px; border-radius: 6px; font-size: 12px; }
+.nm-cc-situacao.ok { background: color-mix(in srgb, #3fa45b 18%, transparent); }
+.nm-cc-situacao.falhou { background: color-mix(in srgb, #d9822b 22%, transparent); }

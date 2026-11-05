@@ -1,5 +1,16 @@
 # Changelog
 
+## v4.9.0
+
+### Transição personalizada: mais fácil de achar, com nome e duração
+- **Novo tipo de transição: "Transição personalizada"**, direto na primeira opção da aba Transição da Central (*Tipo de transição*). Não é mais preciso procurá-la dentro da lista "Transição nativa padrão".
+- **Nome da transição**: escolha o nome com que ela aparece nas listas. Em branco, fica "Personalizada (Navegador de Mundos)".
+- **Duração própria**, de 250 a 10000 ms.
+- **A seção "Transição personalizada" aparece sempre**, logo abaixo do tipo de transição. Na 4.8.0 ela sumia inteira, sem aviso, quando o Foundry não aceitava registrar a transição.
+- **Faixa de situação** no alto da seção: diz se a transição foi registrada no Foundry neste computador ou, se não foi, o motivo. Sem registro, quem for enviado vê a tela do módulo.
+- **Registro mais insistente**: se o registro de transições do Foundry for protegido contra mudanças, o módulo troca o registro por uma cópia com a transição a mais.
+- 5 testes novos (67 no total). Falta o teste no Foundry real.
+
 ## v4.8.0
 
 ### Novidade: transição personalizada, editável

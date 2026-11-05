@@ -12,6 +12,19 @@ export const ESTILOS = ["cortina", "iris", "dissolver", "veu"];
 export const DIRECOES = { direita: 0, baixo: 90, esquerda: 180, cima: 270, diagonal: 45 };
 export const PADRAO_PROPRIA = { estilo: "cortina", cor: "#f0a03c", direcao: "direita", suave: 35, brilho: 60 };
 
+// Como ficou o registro no Foundry: { ok, motivo }. A Central mostra isto, para o mestre saber se a
+// transição está disponível e, se não estiver, por quê.
+let estado = { ok: false, motivo: "ainda não registrada" };
+export const estadoPropria = () => ({ ...estado });
+
+// O nome que aparece nas listas (o mestre pode trocar na Central)
+export function nomeProprio() {
+  let nome = "";
+  try { nome = String(game.settings.get(ID, "transicaoPropriaNome") ?? "").trim(); } catch { /* ainda não registrada */ }
+  if (nome) return nome;
+  try { return game.i18n.localize("NM.Transicao.Propria"); } catch { return "Personalizada (Navegador de Mundos)"; }
+}
+
 // Valores em teste na Central (ainda não salvos): valem no lugar dos gravados enquanto existirem
 let previa = null;
 export function definirPrevia(valores) { previa = valores ? { ...valores } : null; }
@@ -116,16 +129,17 @@ export function programaProprio(precisao = "mediump") {
 }
 
 // Cria o filtro em cima do filtro de transição do Foundry e põe a transição no registro oficial.
-// Chamado no init, antes de registrar as configurações (para ela aparecer nas listas).
-// Devolve true se registrou.
+// Chamado no init, antes de registrar as configurações. Devolve true se registrou; o resultado
+// (e o motivo, se falhou) fica em estadoPropria().
 export function registrarTransicaoPropria() {
+  const falhou = motivo => { estado = { ok: false, motivo }; console.warn(`${ID} | transição: a personalizada não foi registrada (${motivo})`); return false; };
   try {
     const registro = globalThis.CONFIG?.Canvas?.sceneTransitions;
-    if (!registro || typeof registro !== "object") return false;
-    if (registro[TIPO_PROPRIO]) return true;
+    if (!registro || typeof registro !== "object") return falhou("este Foundry não tem o registro de transições (CONFIG.Canvas.sceneTransitions)");
+    if (registro[TIPO_PROPRIO]) { estado = { ok: true, motivo: "" }; return true; }
     const modelo = registro.fade ?? Object.values(registro).find(v => typeof v?.filterClass === "function");
     const Base = modelo?.filterClass;
-    if (typeof Base !== "function") return false;
+    if (typeof Base !== "function") return falhou("as transições do Foundry não têm um filtro para servir de base");
 
     class FiltroTransicaoNM extends Base {
       // O Foundry escolhe a animação pelo "type" do filtro. A nossa não está na lista interna dele:
@@ -140,13 +154,21 @@ export function registrarTransicaoPropria() {
       }
     }
 
-    registro[TIPO_PROPRIO] = {
-      id: TIPO_PROPRIO, label: "NM.Transicao.Propria", filterClass: FiltroTransicaoNM, filterType: TIPO_PROPRIO, defaultDuration: 1500
-    };
+    const definicao = { id: TIPO_PROPRIO, filterClass: FiltroTransicaoNM, filterType: TIPO_PROPRIO, defaultDuration: 1500 };
+    // o nome é lido na hora, então a troca feita na Central aparece sem recarregar
+    Object.defineProperty(definicao, "label", { enumerable: true, get: nomeProprio });
+    // 1ª tentativa: acrescentar no registro. Se ele for protegido contra mudanças, troca o registro
+    // inteiro por uma cópia com a nossa transição a mais.
+    try { registro[TIPO_PROPRIO] = definicao; } catch { /* registro protegido */ }
+    if (CONFIG.Canvas.sceneTransitions[TIPO_PROPRIO] !== definicao) {
+      try { CONFIG.Canvas.sceneTransitions = { ...registro, [TIPO_PROPRIO]: definicao }; } catch { /* também protegido */ }
+    }
+    if (CONFIG.Canvas.sceneTransitions?.[TIPO_PROPRIO] !== definicao) return falhou("o Foundry não deixou acrescentar uma transição ao registro dele");
+    estado = { ok: true, motivo: "" };
     return true;
   } catch (err) {
-    console.warn(`${ID} | transição: não consegui registrar a transição personalizada`, err);
-    return false;
+    console.warn(`${ID} | transição:`, err);
+    return falhou(String(err?.message ?? err));
   }
 }
 

@@ -201,3 +201,37 @@ test("tipos nativos vêm do registro do Foundry (CONFIG.Canvas.sceneTransitions)
   preparar({ cenas: [cenaViagem("A")], tipos: { fade: { id: "fade", label: "Fade" }, dots: { id: "dots", label: "Dots" } } });
   assert.deepEqual(nucleo.tiposTransicaoNativa(), { fade: "Fade", dots: "Dots" });
 });
+
+// ---------- 4.9.0: modo "Transição personalizada"
+const propria = await import("../scripts/transicao-propria.js");
+class FiltroFalso { static get defaultUniforms() { return {}; } set type(v) {} }
+const tiposComBase = () => ({ fade: { id: "fade", label: "Fade", filterType: "fade", filterClass: FiltroFalso } });
+
+test("personalizada: o envio pede ao Foundry a transição do módulo, com a duração dela", async () => {
+  const A = cenaViagem("A"), B = cenaViagem("B", { transition: { type: "fade", duration: 800 } });
+  preparar({ cenas: [A, B], tipos: tiposComBase(), config: { transicao: "propria", transicaoPropriaDuracao: 2500 } });
+  assert.equal(propria.registrarTransicaoPropria(), true);
+  await ir("B");
+  assert.deepEqual(B.views, [{ transition: { type: "nmPropria", duration: 2500 } }], "vale a personalizada, não a do mapa");
+  assert.equal(telas.length, 0);
+  assert.equal(canvas.scene.id, "B");
+});
+
+test("personalizada que o Foundry não aceitou registrar: a tela do módulo entra no lugar, com o motivo no console", async () => {
+  const A = cenaViagem("A"), B = cenaViagem("B");
+  preparar({ cenas: [A, B], tipos: null, config: { transicao: "propria" } });
+  await comConsole(async () => propria.registrarTransicaoPropria());
+  await ir("B");
+  assert.equal(telas.length, 1, "tela do módulo mostrada");
+  assert.deepEqual(B.views, [null]);
+  assert.ok(avisou("nativa indisponível") && avisou("registro de transições"));
+});
+
+test("personalizada recusada pelo Foundry na troca: a tela do módulo entra e o mapa troca", async () => {
+  const A = cenaViagem("A"), B = cenaViagem("B", { recusar: true });
+  preparar({ cenas: [A, B], tipos: tiposComBase(), config: { transicao: "propria" } });
+  propria.registrarTransicaoPropria();
+  await ir("B");
+  assert.equal(telas.length, 1);
+  assert.equal(canvas.scene.id, "B");
+});

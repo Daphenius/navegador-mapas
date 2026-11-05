@@ -9,7 +9,7 @@
 
 import { ID, t, esc } from "./nucleo.js";
 import { ABAS_CENTRAL, CHAVES_CENTRAL, opcoesDe, conferirValor } from "./central-mapa.js";
-import { TIPO_PROPRIO, definirPrevia, testarTransicao } from "./transicao-propria.js";
+import { TIPO_PROPRIO, definirPrevia, estadoPropria, testarTransicao } from "./transicao-propria.js";
 
 const { ApplicationV2, DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -86,7 +86,12 @@ export class CentralConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     return aba.secoes.map(s => {
       const campos = s.campos.map(c => this.#campo(c)).filter(Boolean);
       if (!campos.length) return null;
-      return { titulo: t(s.titulo), icone: s.icone, campos, nota: s.nota ? t(s.nota) : "",
+      let situacao = null;
+      if (s.estado === "propria") {
+        const e = estadoPropria();
+        situacao = e.ok ? { ok: true, texto: t("Central.PropriaOk") } : { ok: false, texto: t("Central.PropriaFalhou", { motivo: e.motivo }) };
+      }
+      return { titulo: t(s.titulo), icone: s.icone, campos, nota: s.nota ? t(s.nota) : "", situacao,
         botao: s.botao ? { acao: s.botao.acao, rotulo: t(s.botao.rotulo), icone: s.botao.icone } : null };
     }).filter(Boolean);
   }
@@ -190,7 +195,7 @@ export class CentralConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     const v = chave => this.valor(chave);
     definirPrevia({ estilo: v("transicaoPropriaEstilo"), cor: v("transicaoPropriaCor"), direcao: v("transicaoPropriaDirecao"), suave: v("transicaoPropriaSuave"), brilho: v("transicaoPropriaBrilho") });
     try {
-      const motivo = await testarTransicao(TIPO_PROPRIO, Number(this.valor("transicaoNativaDuracao")) || 1500);
+      const motivo = await testarTransicao(TIPO_PROPRIO, Number(this.valor("transicaoPropriaDuracao")) || 1500);
       if (motivo === "sem-mapa") ui.notifications.warn(t("Central.TesteSemMapa"));
       else if (motivo) ui.notifications.warn(t("Central.TesteFalhou"));
     } finally { definirPrevia(null); }

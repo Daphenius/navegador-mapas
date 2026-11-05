@@ -8,6 +8,7 @@
   {{#each secoes}}
   <div class="nm-cc-secao">
     <h3><i class="fa-solid {{icone}}"></i> {{titulo}}</h3>
+    {{#if situacao}}<p class="nm-cc-situacao {{#if situacao.ok}}ok{{else}}falhou{{/if}}"><i class="fa-solid {{#if situacao.ok}}fa-circle-check{{else}}fa-triangle-exclamation{{/if}}"></i> {{situacao.texto}}</p>{{/if}}
     {{#each campos}}
     <div class="nm-cc-campo {{#if alterado}}alterado{{/if}} {{#if desligado}}desligado{{/if}} {{#if booleano}}curto{{/if}}">
       <div class="nm-cc-rotulo">

@@ -180,7 +180,8 @@
         "Fundo": "Nome com a miniatura desfocada ao fundo",
         "SoNome": "Só o nome",
         "Off": "Desligada",
-        "Nativa": "Transição nativa do Foundry (recomendada)"
+        "Nativa": "Transição nativa do Foundry (recomendada)",
+        "PropriaModo": "Transição personalizada (editável abaixo)"
       },
       "TransicaoNativaTipo": {
         "Nome": "Transição nativa padrão",
@@ -242,6 +243,14 @@
       "TransicaoPropriaBrilho": {
         "Nome": "Brilho da borda (%)",
         "Dica": "Força do brilho, na cor escolhida, onde os dois mapas se encontram (0 desliga)."
+      },
+      "TransicaoPropriaNome": {
+        "Nome": "Nome da transição",
+        "Dica": "O nome com que ela aparece nas listas de transição. Em branco: \"Personalizada (Navegador de Mundos)\"."
+      },
+      "TransicaoPropriaDuracao": {
+        "Nome": "Duração (ms)",
+        "Dica": "Quanto tempo a transição personalizada leva."
       }
     },
     "Central": {
@@ -294,12 +303,15 @@
         "Titulo": "Alterações não salvas",
         "Texto": "Há {n} alteração(ões) não salva(s). Fechar mesmo assim?"
       },
-      "NotaPropria": "Aparece como \"Personalizada (Navegador de Mundos)\" na lista de transições do Foundry: escolha-a em \"Transição nativa padrão\" ou na configuração de um mapa. A duração é a da transição nativa.",
+      "NotaPropria": "Para usar: em \"Tipo de transição\", no alto desta aba, escolha \"Transição personalizada\". Ela também entra na lista de transições do Foundry, com o nome acima.",
       "Testar": "Testar no mapa aberto",
       "DependeCortina": "Vale no estilo Cortina.",
       "DependeBorda": "Não vale no estilo Véu.",
       "TesteSemMapa": "Abra um mapa para testar a transição.",
-      "TesteFalhou": "Não consegui tocar o teste aqui. Escolha a transição personalizada e envie um jogador para um mapa para ver; o motivo está no console (F12)."
+      "TesteFalhou": "Não consegui tocar o teste aqui. Escolha a transição personalizada e envie um jogador para um mapa para ver; o motivo está no console (F12).",
+      "DependePropria": "Vale quando o tipo de transição é a personalizada. Escolhida como \"Transição nativa padrão\", ela usa a duração da nativa.",
+      "PropriaOk": "Registrada entre as transições do Foundry neste computador.",
+      "PropriaFalhou": "Não foi registrada no Foundry: {motivo}. Enquanto isso, quem for enviado vê a tela do módulo."
     }
   }
 }

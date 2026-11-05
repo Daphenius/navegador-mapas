@@ -99,9 +99,11 @@ test("todos os textos da Central existem em português e em inglês", () => {
 test("transição personalizada: entra no registro do Foundry e nas listas do módulo", () => {
   const registros = registrar();
   const def = CONFIG.Canvas.sceneTransitions.nmPropria;
-  assert.deepEqual([def.id, def.filterType, def.label, def.defaultDuration], ["nmPropria", "nmPropria", "NM.Transicao.Propria", 1500]);
+  assert.deepEqual([def.id, def.filterType, def.defaultDuration], ["nmPropria", "nmPropria", 1500]);
+  assert.deepEqual(propria.estadoPropria(), { ok: true, motivo: "" });
   assert.ok(def.filterClass.prototype instanceof FiltroFalso, "o filtro é feito em cima do filtro do Foundry");
-  assert.ok("nmPropria" in registros.get("transicaoNativaTipo").choices, "aparece em Transição nativa padrão");
+  assert.ok("nmPropria" in registros.get("transicaoNativaTipo").choices(), "aparece em Transição nativa padrão");
+  assert.ok("propria" in registros.get("transicao").choices, "e como tipo de transição, logo na primeira opção da aba");
   assert.equal(registros.get("transicaoNativaTipo").default, "fade", "o padrão continua sendo a do Foundry");
   assert.equal(propria.registrarTransicaoPropria(), true, "registrar de novo não duplica nem dá erro");
 });
@@ -141,8 +143,38 @@ test("transição personalizada: as opções da Central viram os valores do filt
 
 test("transição personalizada: Foundry sem transições nativas não registra nada", () => {
   const registros = registrar({ comNativa: false });
+  const aviso = console.warn; console.warn = () => {};
   assert.equal(propria.registrarTransicaoPropria(), false);
-  assert.equal(registros.has("transicaoPropriaEstilo"), false);
+  console.warn = aviso;
+  assert.equal(propria.estadoPropria().ok, false);
+  assert.match(propria.estadoPropria().motivo, /registro de transições/, "a Central mostra o motivo");
+  assert.equal(registros.has("transicaoPropriaEstilo"), true, "as opções continuam na Central, com o aviso");
+});
+
+test("transição personalizada: o nome é o que o mestre escolher, lido na hora", () => {
+  registrar();
+  const def = CONFIG.Canvas.sceneTransitions.nmPropria;
+  const cfg = {};
+  game.settings.get = (m, k) => cfg[k];
+  game.i18n.localize = k => (k === "NM.Transicao.Propria" ? "Personalizada (Navegador de Mundos)" : k);
+  assert.equal(def.label, "Personalizada (Navegador de Mundos)", "em branco: o nome padrão");
+  cfg.transicaoPropriaNome = "  Névoa do Viajante ";
+  assert.equal(def.label, "Névoa do Viajante");
+  assert.equal(nucleo.tiposTransicaoNativa().nmPropria, "Névoa do Viajante", "e é o nome que aparece nas listas do módulo");
+});
+
+test("transição personalizada: registro protegido contra mudanças é trocado por uma cópia", () => {
+  montarFoundry();
+  const protegido = Object.freeze({ fade: { id: "fade", label: "Fade", filterType: "fade", filterClass: FiltroFalso } });
+  globalThis.CONFIG = { Canvas: { sceneTransitions: protegido } };
+  assert.equal(propria.registrarTransicaoPropria(), true);
+  assert.ok(CONFIG.Canvas.sceneTransitions.nmPropria && CONFIG.Canvas.sceneTransitions.fade, "a nossa e as do Foundry");
+  // nem o registro nem o lugar dele podem ser mudados: não registra, e diz por quê
+  globalThis.CONFIG = { Canvas: Object.freeze({ sceneTransitions: protegido }) };
+  const aviso = console.warn; console.warn = () => {};
+  assert.equal(propria.registrarTransicaoPropria(), false);
+  console.warn = aviso;
+  assert.match(propria.estadoPropria().motivo, /não deixou acrescentar/);
 });
 
 test("transição personalizada: cor só aceita #rrggbb; direção e brilho dependem do estilo", () => {
