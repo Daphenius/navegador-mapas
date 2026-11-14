@@ -1,5 +1,9 @@
 # Changelog
 
+## v4.12.1
+
+- Atualizado para o Foundry VTT 14.370 (versão estável mais recente).
+
 ## v4.12.0
 
 ### Tela de transição refeita como era na v3.2.0
